@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media/statements/*
+/media/avatars/*
+!media/statements/.gitkeep
+!media/avatars/.gitkeep
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Template reference (keep it but ignore in git if needed)
+# template.html
+
+# Static files (collected)
+/staticfiles/
+/static_collected/
+

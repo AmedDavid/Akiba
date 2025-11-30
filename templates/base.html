@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Akiba - Smart Savings Tracker{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,600&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-serif { font-family: 'Playfair Display', serif; }
+        .font-display { font-family: 'Cinzel', serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Aged Paper Texture */
+        .bg-texture {
+            background-color: #F5F2E9;
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(120, 34, 33, .03) 25%, rgba(120, 34, 33, .03) 26%, transparent 27%, transparent 74%, rgba(120, 34, 33, .03) 75%, rgba(120, 34, 33, .03) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(120, 34, 33, .03) 25%, rgba(120, 34, 33, .03) 26%, transparent 27%, transparent 74%, rgba(120, 34, 33, .03) 75%, rgba(120, 34, 33, .03) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+        }
+        /* Vintage Photo Filter */
+        .vintage-filter {
+            filter: sepia(0.3) contrast(1.1) brightness(0.9);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vintage: {
+                            cream: '#F5F2E9',
+                            dark: '#2C2420',
+                            brown: '#5D4037',
+                            red: '#782221',
+                            redlight: '#9B2C2C',
+                            olive: '#556B2F',
+                            gold: '#C5A059'
+                        }
+                    },
+                    backgroundImage: {
+                        'paper-pattern': "url('https://www.transparenttextures.com/patterns/cream-paper.png')"
+                    }
+                }
+            }
+        }
+    </script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-vintage-cream text-vintage-dark antialiased selection:bg-vintage-red selection:text-white bg-texture">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-[#F5F2E9]/95 backdrop-blur-sm border-b-2 border-vintage-dark/10">
+        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2 group">
+                <i data-lucide="piggy-bank" class="w-8 h-8 text-vintage-red stroke-[1.5]"></i>
+                <div class="flex flex-col">
+                    <span class="text-2xl font-black font-serif tracking-tighter text-vintage-dark leading-none">Ak<span class="text-vintage-red italic font-normal">iba</span></span>
+                    <span class="text-[10px] uppercase tracking-[0.2em] text-vintage-brown font-display">Smart Savings</span>
+                </div>
+            </a>
+            {% if user.is_authenticated %}
+            <div class="hidden md:flex items-center gap-12 text-xs font-bold text-vintage-dark tracking-[0.15em] uppercase font-display">
+                <a href="{% url 'dashboard' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Dashboard
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'goals' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Goals
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'insights' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Insights
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'tribes' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Tribes
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'leaderboard' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Leaderboard
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="{% url 'profile' %}" class="flex items-center gap-2 hover:text-vintage-red transition-colors text-vintage-dark">
+                    {% if user.userprofile.avatar %}
+                        <img src="{{ user.userprofile.avatar.url }}" alt="Profile" class="w-8 h-8 rounded-full border-2 border-vintage-red">
+                    {% else %}
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    {% endif %}
+                </a>
+                <a href="{% url 'logout' %}" class="hover:text-vintage-red transition-colors text-vintage-dark">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </a>
+            </div>
+            {% else %}
+            <div class="flex items-center gap-6">
+                <a href="{% url 'login' %}" class="hover:text-vintage-red transition-colors text-vintage-dark font-display uppercase tracking-widest text-xs">Login</a>
+                <a href="{% url 'register' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-2 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">Register</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="fixed top-24 right-6 z-50 space-y-2 max-w-md">
+        {% for message in messages %}
+        <div class="bg-vintage-cream border-2 border-vintage-dark shadow-[4px_4px_0px_0px_#2C2420] p-4 {% if message.tags == 'error' %}border-vintage-red{% elif message.tags == 'success' %}border-vintage-olive{% endif %}">
+            <div class="flex items-center gap-3">
+                {% if message.tags == 'error' %}
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-vintage-red"></i>
+                {% elif message.tags == 'success' %}
+                    <i data-lucide="check-circle" class="w-5 h-5 text-vintage-olive"></i>
+                {% else %}
+                    <i data-lucide="info" class="w-5 h-5 text-vintage-brown"></i>
+                {% endif %}
+                <span class="font-serif text-sm">{{ message }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="pt-24">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-vintage-dark text-vintage-cream pt-24 pb-12 px-6 border-t-[8px] border-vintage-red mt-24">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+            <div class="space-y-6">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="piggy-bank" class="w-6 h-6 text-vintage-red"></i>
+                    <span class="text-2xl font-bold font-serif tracking-tight text-white block">Ak<span class="text-vintage-red italic font-normal">iba.</span></span>
+                </div>
+                <p class="text-sm leading-relaxed max-w-xs text-vintage-cream/60 font-serif">
+                    Smart savings goal tracker with M-Pesa analysis. Build your future, one shilling at a time.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-display font-bold uppercase tracking-widest text-xs mb-8 text-vintage-gold">Features</h4>
+                <ul class="space-y-4 text-sm font-serif italic text-vintage-cream/80">
+                    <li><a href="{% url 'goals' %}" class="hover:text-vintage-red transition-colors">Savings Goals</a></li>
+                    <li><a href="{% url 'insights' %}" class="hover:text-vintage-red transition-colors">M-Pesa Insights</a></li>
+                    <li><a href="{% url 'tribes' %}" class="hover:text-vintage-red transition-colors">Tribes</a></li>
+                    <li><a href="{% url 'leaderboard' %}" class="hover:text-vintage-red transition-colors">Leaderboards</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-display font-bold uppercase tracking-widest text-xs mb-8 text-vintage-gold">Account</h4>
+                <ul class="space-y-4 text-sm font-serif italic text-vintage-cream/80">
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'profile' %}" class="hover:text-vintage-red transition-colors">Profile</a></li>
+                    <li><a href="{% url 'dashboard' %}" class="hover:text-vintage-red transition-colors">Dashboard</a></li>
+                    {% else %}
+                    <li><a href="{% url 'login' %}" class="hover:text-vintage-red transition-colors">Login</a></li>
+                    <li><a href="{% url 'register' %}" class="hover:text-vintage-red transition-colors">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="space-y-6">
+                <h4 class="font-display font-bold uppercase tracking-widest text-xs mb-2 text-vintage-gold">About</h4>
+                <p class="text-sm text-vintage-cream/60 font-serif">Track your savings, analyze spending, and achieve your goals with your community.</p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto pt-8 border-t border-vintage-cream/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] tracking-[0.2em] uppercase text-vintage-cream/40 font-display">
+            <p>&copy; {% now "Y" %} Akiba. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons({
+            attrs: {
+                'stroke-width': 1.5
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+
