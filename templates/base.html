@@ -60,7 +60,7 @@
     <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 bg-[#F5F2E9]/95 backdrop-blur-sm border-b-2 border-vintage-dark/10">
         <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-            <a href="{% url 'dashboard' %}" class="flex items-center gap-2 group">
+            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}" class="flex items-center gap-2 group">
                 <i data-lucide="piggy-bank" class="w-8 h-8 text-vintage-red stroke-[1.5]"></i>
                 <div class="flex flex-col">
                     <span class="text-2xl font-black font-serif tracking-tighter text-vintage-dark leading-none">Ak<span class="text-vintage-red italic font-normal">iba</span></span>
@@ -68,6 +68,19 @@
                 </div>
             </a>
             {% if user.is_authenticated %}
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-vintage-dark hover:text-vintage-red transition-colors">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <div id="mobile-menu" class="hidden md:hidden absolute top-24 left-0 right-0 bg-[#F5F2E9]/98 backdrop-blur-sm border-b-2 border-vintage-dark/10 p-6 shadow-lg">
+                <div class="flex flex-col gap-4 text-xs font-bold text-vintage-dark tracking-[0.15em] uppercase font-display">
+                    <a href="{% url 'dashboard' %}" class="hover:text-vintage-red transition-colors">Dashboard</a>
+                    <a href="{% url 'goals' %}" class="hover:text-vintage-red transition-colors">Goals</a>
+                    <a href="{% url 'insights' %}" class="hover:text-vintage-red transition-colors">Insights</a>
+                    <a href="{% url 'tribes' %}" class="hover:text-vintage-red transition-colors">Tribes</a>
+                    <a href="{% url 'leaderboard' %}" class="hover:text-vintage-red transition-colors">Leaderboard</a>
+                </div>
+            </div>
             <div class="hidden md:flex items-center gap-12 text-xs font-bold text-vintage-dark tracking-[0.15em] uppercase font-display">
                 <a href="{% url 'dashboard' %}" class="hover:text-vintage-red transition-colors relative group">
                     Dashboard
@@ -185,6 +198,15 @@
                 'stroke-width': 1.5
             }
         });
+        
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
     </script>
     {% block extra_js %}{% endblock %}
 </body>

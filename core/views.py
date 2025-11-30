@@ -75,7 +75,12 @@ def logout_view(request):
 @login_required
 def dashboard(request):
     """Main dashboard"""
-    profile = request.user.userprofile
+    try:
+        profile = request.user.userprofile
+    except UserProfile.DoesNotExist:
+        # Create profile if it doesn't exist (safety check)
+        profile = UserProfile.objects.create(user=request.user)
+    
     today = timezone.now().date()
     
     # Get active goals
@@ -172,8 +177,11 @@ def goal_detail(request, goal_id):
                     saving.amount += amount
                     saving.save()
                 
-                # Update profile
-                request.user.userprofile.total_saved += amount
+                # Update profile total_saved (recalculate from all daily savings)
+                total_saved = DailySaving.objects.filter(user=request.user).aggregate(
+                    total=Sum('amount')
+                )['total'] or Decimal('0.00')
+                request.user.userprofile.total_saved = total_saved
                 request.user.userprofile.update_streak()
                 request.user.userprofile.save()
                 
@@ -196,9 +204,11 @@ def goal_detail(request, goal_id):
             return redirect('goal_detail', goal_id=goal_id)
     
     remaining = goal.target_amount - goal.current_amount
+    projected_date = goal.projected_finish_date()
     return render(request, 'core/goal_detail.html', {
         'goal': goal,
-        'remaining': max(Decimal('0.00'), remaining)
+        'remaining': max(Decimal('0.00'), remaining),
+        'projected_date': projected_date
     })
 
 
@@ -239,9 +249,12 @@ def daily_saving_log(request):
             else:
                 saving.save()
             
-            # Update profile
+            # Update profile total_saved (recalculate from all daily savings)
             profile = request.user.userprofile
-            profile.total_saved += saving.amount
+            total_saved = DailySaving.objects.filter(user=request.user).aggregate(
+                total=Sum('amount')
+            )['total'] or Decimal('0.00')
+            profile.total_saved = total_saved
             profile.update_streak()
             profile.save()
             

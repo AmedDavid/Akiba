@@ -66,10 +66,15 @@
                 </div>
             </div>
             
-            <div class="mt-6 pt-6 border-t border-vintage-dark/10">
+            <div class="mt-6 pt-6 border-t border-vintage-dark/10 space-y-2">
                 <p class="text-sm text-vintage-brown text-center">
                     Remaining: <span class="font-bold text-vintage-dark">KSh {{ remaining|floatformat:2 }}</span>
                 </p>
+                {% if projected_date and not goal.achieved %}
+                <p class="text-xs text-vintage-brown text-center italic">
+                    Projected finish: {{ projected_date|date:"F d, Y" }}
+                </p>
+                {% endif %}
             </div>
         </div>
 

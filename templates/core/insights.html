@@ -34,7 +34,7 @@
                     <i data-lucide="trending-down" class="w-8 h-8 text-vintage-brown"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Net</span>
                 </div>
-                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ net_amount|floatformat:2 }}</p>
+                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ net_amount|floatformat:2|default:"0.00" }}</p>
             </div>
         </div>
 
