@@ -71,7 +71,8 @@
             
             {% if user.is_authenticated %}
             <!-- Desktop Navigation -->
-            <div class="hidden md:flex items-center gap-8 lg:gap-12 text-xs font-bold text-vintage-dark tracking-[0.15em] uppercase font-display">
+            <div class="hidden md:flex items-center gap-6 lg:gap-8 text-xs font-bold text-vintage-dark tracking-[0.15em] uppercase font-display">
+                <!-- Main Navigation -->
                 <a href="{% url 'dashboard' %}" class="hover:text-vintage-red transition-colors relative group">
                     Dashboard
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
@@ -88,22 +89,62 @@
                     Tribes
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
                 </a>
-                <a href="{% url 'leaderboard' %}" class="hover:text-vintage-red transition-colors relative group">
-                    Leaderboard
-                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
-                </a>
-                <a href="{% url 'achievements' %}" class="hover:text-vintage-red transition-colors relative group">
-                    Achievements
-                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
-                </a>
-                <a href="{% url 'challenges' %}" class="hover:text-vintage-red transition-colors relative group">
-                    Challenges
-                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
-                </a>
-                <a href="{% url 'analytics' %}" class="hover:text-vintage-red transition-colors relative group">
-                    Analytics
-                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
-                </a>
+                
+                <!-- Gamification Dropdown -->
+                <div class="relative group">
+                    <button class="hover:text-vintage-red transition-colors flex items-center gap-1">
+                        Gamify
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-hover:rotate-180"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                        <div class="py-2">
+                            <a href="{% url 'achievements' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="award" class="w-4 h-4 inline-block mr-2"></i>
+                                Achievements
+                            </a>
+                            <a href="{% url 'challenges' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="target" class="w-4 h-4 inline-block mr-2"></i>
+                                Challenges
+                            </a>
+                            <a href="{% url 'leaderboard' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="trophy" class="w-4 h-4 inline-block mr-2"></i>
+                                Leaderboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tools Dropdown -->
+                <div class="relative group">
+                    <button class="hover:text-vintage-red transition-colors flex items-center gap-1">
+                        Tools
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-hover:rotate-180"></i>
+                    </button>
+                    <div class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                        <div class="py-2">
+                            <a href="{% url 'analytics' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="bar-chart" class="w-4 h-4 inline-block mr-2"></i>
+                                Analytics
+                            </a>
+                            <a href="{% url 'budget' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="wallet" class="w-4 h-4 inline-block mr-2"></i>
+                                Budget
+                            </a>
+                            <a href="{% url 'calculator' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="calculator" class="w-4 h-4 inline-block mr-2"></i>
+                                Calculator
+                            </a>
+                            <a href="{% url 'recurring_plans' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="repeat" class="w-4 h-4 inline-block mr-2"></i>
+                                Recurring Plans
+                            </a>
+                            <a href="{% url 'goal_templates' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
+                                <i data-lucide="file-text" class="w-4 h-4 inline-block mr-2"></i>
+                                Goal Templates
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Desktop User Actions -->
@@ -141,8 +182,9 @@
             </div>
             
             <!-- Mobile Menu Dropdown -->
-            <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 right-0 bg-[#F5F2E9] border-b-2 border-vintage-dark/10 shadow-lg">
+            <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 right-0 bg-[#F5F2E9] border-b-2 border-vintage-dark/10 shadow-lg max-h-[80vh] overflow-y-auto">
                 <div class="px-4 py-4 space-y-1">
+                    <!-- Main Navigation -->
                     <a href="{% url 'dashboard' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
                         Dashboard
                     </a>
@@ -155,31 +197,49 @@
                     <a href="{% url 'tribes' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
                         Tribes
                     </a>
-                    <a href="{% url 'leaderboard' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
-                        Leaderboard
-                    </a>
-                    <a href="{% url 'achievements' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
-                        Achievements
-                    </a>
-                    <a href="{% url 'challenges' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
-                        Challenges
-                    </a>
-                    <a href="{% url 'analytics' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
-                        Analytics
-                    </a>
-                    <a href="{% url 'budget' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
-                        Budget
-                    </a>
-                    <a href="{% url 'calculator' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
-                        Calculator
-                    </a>
-                    <a href="{% url 'notifications' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red relative">
-                        Notifications
-                        {% if unread_count > 0 %}
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 bg-vintage-red text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{{ unread_count }}</span>
-                        {% endif %}
-                    </a>
+                    
+                    <!-- Gamification Section -->
                     <div class="border-t border-vintage-dark/10 mt-2 pt-2">
+                        <p class="px-4 py-2 text-xs font-display uppercase tracking-widest text-vintage-brown">Gamification</p>
+                        <a href="{% url 'achievements' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Achievements
+                        </a>
+                        <a href="{% url 'challenges' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Challenges
+                        </a>
+                        <a href="{% url 'leaderboard' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Leaderboard
+                        </a>
+                    </div>
+                    
+                    <!-- Tools Section -->
+                    <div class="border-t border-vintage-dark/10 mt-2 pt-2">
+                        <p class="px-4 py-2 text-xs font-display uppercase tracking-widest text-vintage-brown">Tools</p>
+                        <a href="{% url 'analytics' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Analytics
+                        </a>
+                        <a href="{% url 'budget' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Budget
+                        </a>
+                        <a href="{% url 'calculator' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Calculator
+                        </a>
+                        <a href="{% url 'recurring_plans' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Recurring Plans
+                        </a>
+                        <a href="{% url 'goal_templates' %}" class="block py-2 px-6 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                            Goal Templates
+                        </a>
+                    </div>
+                    
+                    <!-- User Section -->
+                    <div class="border-t border-vintage-dark/10 mt-2 pt-2">
+                        <a href="{% url 'notifications' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red relative">
+                            Notifications
+                            {% if unread_count > 0 %}
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 bg-vintage-red text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
                         <a href="{% url 'logout' %}" class="block py-3 px-4 text-sm font-bold text-vintage-red tracking-[0.15em] uppercase font-display hover:bg-vintage-red/10 transition-colors">
                             Logout
                         </a>
