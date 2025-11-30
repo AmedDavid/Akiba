@@ -5,11 +5,11 @@
 {% block content %}
 <section class="py-12 px-6">
     <div class="max-w-7xl mx-auto space-y-12">
-        <h1 class="text-4xl font-serif text-vintage-dark text-center">Leaderboards</h1>
+        <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark text-center">Leaderboards</h1>
 
         <!-- National Leaderboard -->
-        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
-            <h2 class="text-3xl font-serif text-vintage-dark mb-6">National Top Savers</h2>
+        <div class="bg-white p-4 md:p-6 lg:p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark mb-4 md:mb-6">National Top Savers</h2>
             {% if national_top %}
             <div class="space-y-4">
                 {% for profile in national_top %}
@@ -31,8 +31,8 @@
         </div>
 
         <!-- Streak Leaders -->
-        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
-            <h2 class="text-3xl font-serif text-vintage-dark mb-6">Streak Champions</h2>
+        <div class="bg-white p-4 md:p-6 lg:p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark mb-4 md:mb-6">Streak Champions</h2>
             {% if streak_leaders %}
             <div class="space-y-4">
                 {% for profile in streak_leaders %}
@@ -56,19 +56,19 @@
         <!-- Tribe Leaderboards -->
         {% if tribe_leaderboards %}
         <div class="space-y-8">
-            <h2 class="text-3xl font-serif text-vintage-dark text-center">Your Tribe Leaderboards</h2>
+            <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark text-center">Your Tribe Leaderboards</h2>
             {% for tribe, leaderboard in tribe_leaderboards.items %}
             <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm">
-                <h3 class="text-2xl font-serif text-vintage-dark mb-6">{{ tribe.name }}</h3>
+                <h3 class="text-xl md:text-2xl font-serif text-vintage-dark mb-4 md:mb-6 break-words">{{ tribe.name }}</h3>
                 {% if leaderboard %}
                 <div class="space-y-4">
                     {% for profile in leaderboard %}
-                    <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <span class="text-xl font-serif text-vintage-red font-bold w-10 text-center">#{{ forloop.counter }}</span>
-                            <p class="font-serif text-lg text-vintage-dark font-bold">{{ profile.user.username }}</p>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                        <div class="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                            <span class="text-lg md:text-xl font-serif text-vintage-red font-bold w-8 md:w-10 text-center flex-shrink-0">#{{ forloop.counter }}</span>
+                            <p class="font-serif text-base md:text-lg text-vintage-dark font-bold break-words">{{ profile.user.username }}</p>
                         </div>
-                        <p class="text-xl font-serif text-vintage-red font-bold">KSh {{ profile.total_saved|floatformat:2 }}</p>
+                        <p class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ profile.total_saved|floatformat:2 }}</p>
                     </div>
                     {% endfor %}
                 </div>

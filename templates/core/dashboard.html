@@ -47,20 +47,20 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="flex flex-wrap gap-4 justify-center">
+        <div class="flex flex-wrap gap-3 sm:gap-4 justify-center">
             {% if not checked_in_today %}
-            <a href="{% url 'daily_saving_log' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+            <a href="{% url 'daily_saving_log' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-4 sm:px-6 md:px-8 py-2 sm:py-3 font-bold tracking-widest uppercase text-[10px] sm:text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark whitespace-nowrap">
                 Check In Today
             </a>
             {% else %}
-            <div class="bg-vintage-olive/20 text-vintage-olive px-8 py-3 font-bold tracking-widest uppercase text-xs border border-vintage-olive">
+            <div class="bg-vintage-olive/20 text-vintage-olive px-4 sm:px-6 md:px-8 py-2 sm:py-3 font-bold tracking-widest uppercase text-[10px] sm:text-xs border border-vintage-olive whitespace-nowrap">
                 ✓ Checked In Today
             </div>
             {% endif %}
-            <a href="{% url 'goal_create' %}" class="bg-vintage-dark hover:bg-vintage-brown text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-colors border border-vintage-dark">
+            <a href="{% url 'goal_create' %}" class="bg-vintage-dark hover:bg-vintage-brown text-vintage-cream px-4 sm:px-6 md:px-8 py-2 sm:py-3 font-bold tracking-widest uppercase text-[10px] sm:text-xs transition-colors border border-vintage-dark whitespace-nowrap">
                 New Goal
             </a>
-            <a href="{% url 'upload_statement' %}" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all">
+            <a href="{% url 'upload_statement' %}" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-4 sm:px-6 md:px-8 py-2 sm:py-3 font-bold tracking-widest uppercase text-[10px] sm:text-xs transition-all whitespace-nowrap">
                 Upload M-Pesa
             </a>
         </div>
