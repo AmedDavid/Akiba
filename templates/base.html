@@ -96,8 +96,8 @@
                         Gamify
                         <i data-lucide="chevron-down" id="gamify-chevron" class="w-4 h-4 transition-transform"></i>
                     </button>
-                    <div id="gamify-menu" class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible pointer-events-none transition-all duration-200 z-50">
-                        <div class="py-2">
+                    <div id="gamify-menu" class="absolute top-full left-0 pt-1 w-48 opacity-0 invisible pointer-events-none transition-all duration-200 z-50">
+                        <div class="bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg py-2">
                             <a href="{% url 'achievements' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
                                 <i data-lucide="award" class="w-4 h-4 inline-block mr-2"></i>
                                 Achievements
@@ -120,8 +120,8 @@
                         Tools
                         <i data-lucide="chevron-down" id="tools-chevron" class="w-4 h-4 transition-transform"></i>
                     </button>
-                    <div id="tools-menu" class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible pointer-events-none transition-all duration-200 z-50">
-                        <div class="py-2">
+                    <div id="tools-menu" class="absolute top-full left-0 pt-1 w-48 opacity-0 invisible pointer-events-none transition-all duration-200 z-50">
+                        <div class="bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg py-2">
                             <a href="{% url 'analytics' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
                                 <i data-lucide="bar-chart" class="w-4 h-4 inline-block mr-2"></i>
                                 Analytics
@@ -393,35 +393,86 @@
         const toolsMenu = document.getElementById('tools-menu');
         const toolsChevron = document.getElementById('tools-chevron');
         
+        let gamifyTimeout = null;
+        let toolsTimeout = null;
+        
         function showDropdown(menu, chevron) {
-            menu.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
-            menu.classList.add('opacity-100', 'visible', 'pointer-events-auto');
-            chevron.style.transform = 'rotate(180deg)';
+            if (menu && chevron) {
+                menu.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+                menu.classList.add('opacity-100', 'visible', 'pointer-events-auto');
+                chevron.style.transform = 'rotate(180deg)';
+            }
         }
         
-        function hideDropdown(menu, chevron) {
-            menu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
-            menu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
-            chevron.style.transform = 'rotate(0deg)';
+        function hideDropdown(menu, chevron, delay = 100) {
+            if (menu && chevron) {
+                setTimeout(() => {
+                    menu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
+                    menu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+                    chevron.style.transform = 'rotate(0deg)';
+                }, delay);
+            }
+        }
+        
+        function cancelHide(timeout) {
+            if (timeout) {
+                clearTimeout(timeout);
+            }
         }
         
         if (gamifyDropdown && gamifyMenu && gamifyChevron) {
-            gamifyDropdown.addEventListener('mouseenter', () => showDropdown(gamifyMenu, gamifyChevron));
-            gamifyDropdown.addEventListener('mouseleave', () => hideDropdown(gamifyMenu, gamifyChevron));
+            gamifyDropdown.addEventListener('mouseenter', () => {
+                cancelHide(gamifyTimeout);
+                showDropdown(gamifyMenu, gamifyChevron);
+            });
+            
+            gamifyDropdown.addEventListener('mouseleave', () => {
+                gamifyTimeout = setTimeout(() => {
+                    hideDropdown(gamifyMenu, gamifyChevron, 0);
+                }, 150);
+            });
+            
+            // Keep open when hovering over menu
+            gamifyMenu.addEventListener('mouseenter', () => {
+                cancelHide(gamifyTimeout);
+                showDropdown(gamifyMenu, gamifyChevron);
+            });
+            
+            gamifyMenu.addEventListener('mouseleave', () => {
+                hideDropdown(gamifyMenu, gamifyChevron, 0);
+            });
         }
         
         if (toolsDropdown && toolsMenu && toolsChevron) {
-            toolsDropdown.addEventListener('mouseenter', () => showDropdown(toolsMenu, toolsChevron));
-            toolsDropdown.addEventListener('mouseleave', () => hideDropdown(toolsMenu, toolsChevron));
+            toolsDropdown.addEventListener('mouseenter', () => {
+                cancelHide(toolsTimeout);
+                showDropdown(toolsMenu, toolsChevron);
+            });
+            
+            toolsDropdown.addEventListener('mouseleave', () => {
+                toolsTimeout = setTimeout(() => {
+                    hideDropdown(toolsMenu, toolsChevron, 0);
+                }, 150);
+            });
+            
+            // Keep open when hovering over menu
+            toolsMenu.addEventListener('mouseenter', () => {
+                cancelHide(toolsTimeout);
+                showDropdown(toolsMenu, toolsChevron);
+            });
+            
+            toolsMenu.addEventListener('mouseleave', () => {
+                hideDropdown(toolsMenu, toolsChevron, 0);
+            });
         }
         
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            if (gamifyDropdown && !gamifyDropdown.contains(e.target)) {
-                hideDropdown(gamifyMenu, gamifyChevron);
+            if (gamifyDropdown && !gamifyDropdown.contains(e.target) && gamifyMenu && gamifyChevron) {
+                hideDropdown(gamifyMenu, gamifyChevron, 0);
             }
-            if (toolsDropdown && !toolsDropdown.contains(e.target)) {
-                hideDropdown(toolsMenu, toolsChevron);
+            if (toolsDropdown && !toolsDropdown.contains(e.target) && toolsMenu && toolsChevron) {
+                hideDropdown(toolsMenu, toolsChevron, 0);
             }
         });
     </script>
