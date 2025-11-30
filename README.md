@@ -31,10 +31,20 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
+**Note for Kali Linux users:** If you encounter "externally-managed-environment" errors, you can either:
+- Use the venv's pip directly: `venv/bin/pip install -r requirements.txt`
+- Or install with: `pip install --break-system-packages -r requirements.txt` (development only)
+
 ### 2. Install Dependencies
 
 ```bash
+# If venv is working properly:
 pip install -r requirements.txt
+
+# If venv has issues (Kali Linux), use:
+venv/bin/pip install -r requirements.txt
+# OR
+pip install --break-system-packages -r requirements.txt
 ```
 
 ### 3. Run Migrations
