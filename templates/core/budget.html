@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Budget Planning - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-8">Budget Planning</h1>
+
+        <!-- Current Month Budget -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420] mb-8">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">{{ current_month|date:"F Y" }}</h2>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Month</label>
+                        <input type="month" name="month" value="{{ budget.month|date:'Y-m' }}" required 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Total Budget (KSh)</label>
+                        <input type="number" name="total_budget" step="0.01" min="0.01" required 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"
+                               value="{{ budget.total_budget|floatformat:2 }}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Savings Target (KSh)</label>
+                        <input type="number" name="savings_target" step="0.01" min="0" 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"
+                               value="{{ budget.savings_target|floatformat:2 }}">
+                    </div>
+                </div>
+                
+                <button type="submit" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                    Update Budget
+                </button>
+            </form>
+
+            <!-- Budget Summary -->
+            {% if budget.total_budget > 0 %}
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-vintage-cream/30 p-4 border border-vintage-dark/10">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Total Budget</p>
+                    <p class="text-xl font-serif text-vintage-dark font-bold">KSh {{ budget.total_budget|floatformat:2 }}</p>
+                </div>
+                <div class="bg-vintage-red/5 p-4 border border-vintage-red/20">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Spent</p>
+                    <p class="text-xl font-serif text-vintage-red font-bold">KSh {{ budget.get_spent|floatformat:2 }}</p>
+                </div>
+                <div class="bg-vintage-olive/5 p-4 border border-vintage-olive/20">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Saved</p>
+                    <p class="text-xl font-serif text-vintage-olive font-bold">KSh {{ budget.get_saved|floatformat:2 }}</p>
+                </div>
+                <div class="bg-vintage-brown/5 p-4 border border-vintage-brown/20">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Remaining</p>
+                    <p class="text-xl font-serif text-vintage-dark font-bold">KSh {{ budget.remaining_budget|floatformat:2 }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <div class="flex justify-between text-sm text-vintage-brown mb-2">
+                    <span>Budget Usage</span>
+                    <span class="font-bold">{{ budget.budget_percentage|floatformat:0 }}%</span>
+                </div>
+                <div class="w-full bg-vintage-dark/10 h-4 border border-vintage-dark/20">
+                    <div class="bg-vintage-red h-full transition-all" style="width: {{ budget.budget_percentage }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Budget History -->
+        {% if budgets %}
+        <div>
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Budget History</h2>
+            <div class="space-y-4">
+                {% for b in budgets %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm hover:shadow-md transition-all">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-serif text-lg font-bold text-vintage-dark">{{ b.month|date:"F Y" }}</h3>
+                            <p class="text-sm text-vintage-brown">Budget: KSh {{ b.total_budget|floatformat:2 }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-vintage-brown">Spent: <span class="font-bold text-vintage-red">KSh {{ b.get_spent|floatformat:2 }}</span></p>
+                            <p class="text-sm text-vintage-brown">Saved: <span class="font-bold text-vintage-olive">KSh {{ b.get_saved|floatformat:2 }}</span></p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

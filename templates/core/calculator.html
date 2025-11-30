@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Savings Calculator - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-2">Savings Calculator</h1>
+            <p class="text-vintage-brown font-serif italic">Calculate how long it will take to reach your goal</p>
+        </div>
+
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Target Amount (KSh)</label>
+                        <input type="number" name="target_amount" step="0.01" min="0.01" required 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"
+                               placeholder="100000">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Current Amount (KSh)</label>
+                        <input type="number" name="current_amount" step="0.01" min="0" 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"
+                               placeholder="0" value="0">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Monthly Savings (KSh)</label>
+                        <input type="number" name="monthly_savings" step="0.01" min="0.01" required 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"
+                               placeholder="5000">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Target Deadline (Optional)</label>
+                        <input type="date" name="deadline" 
+                               class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-4 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                    Calculate
+                </button>
+            </form>
+
+            {% if result %}
+            <div class="mt-8 p-6 bg-vintage-cream/30 border border-vintage-dark/10">
+                <h2 class="text-xl font-serif text-vintage-dark mb-4">Results</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 border border-vintage-dark/10">
+                        <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Time to Goal</p>
+                        <p class="text-2xl font-serif text-vintage-red font-bold">{{ result.months|floatformat:1 }} months</p>
+                        <p class="text-sm text-vintage-brown mt-1">({{ result.days|floatformat:0 }} days)</p>
+                    </div>
+                    <div class="bg-white p-4 border border-vintage-dark/10">
+                        <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Weekly Savings Needed</p>
+                        <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ result.weekly_savings|floatformat:2 }}</p>
+                    </div>
+                    <div class="bg-white p-4 border border-vintage-dark/10">
+                        <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Daily Savings Needed</p>
+                        <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ result.daily_savings|floatformat:2 }}</p>
+                    </div>
+                    <div class="bg-white p-4 border border-vintage-dark/10">
+                        <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Monthly Savings</p>
+                        <p class="text-2xl font-serif text-vintage-olive font-bold">KSh {{ monthly_savings|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
