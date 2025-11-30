@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Goal from Template - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-8">Create Goal from Template</h1>
+
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420] mb-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 bg-vintage-red/10 rounded-full flex items-center justify-center">
+                    <i data-lucide="{{ template.icon_name }}" class="w-8 h-8 text-vintage-red"></i>
+                </div>
+                <div>
+                    <h2 class="font-serif text-2xl font-bold text-vintage-dark">{{ template.name }}</h2>
+                    <p class="text-vintage-brown">{{ template.description }}</p>
+                </div>
+            </div>
+            <div class="space-y-2 mb-6">
+                <p class="text-sm text-vintage-brown"><span class="font-bold">Target Amount:</span> KSh {{ template.target_amount|floatformat:2 }}</p>
+                <p class="text-sm text-vintage-brown"><span class="font-bold">Suggested Deadline:</span> {{ suggested_deadline|date:"F d, Y" }}</p>
+                <p class="text-sm text-vintage-brown"><span class="font-bold">Category:</span> {{ template.get_category_display }}</p>
+            </div>
+        </div>
+
+        <form method="post" class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            {% csrf_token %}
+            <p class="text-vintage-brown font-serif italic mb-6">Click the button below to create this goal with the suggested settings. You can modify it later.</p>
+            <div class="flex gap-4">
+                <button type="submit" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-4 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                    Create Goal
+                </button>
+                <a href="{% url 'goal_templates' %}" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-8 py-4 font-bold tracking-widest uppercase text-xs transition-all">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Goal Templates - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-8">Goal Templates</h1>
+        <p class="text-vintage-brown font-serif italic mb-8">Choose a template to quickly create your savings goal</p>
+
+        <!-- Featured Templates -->
+        {% if featured_templates %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Featured Templates</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for template in featured_templates %}
+                <div class="bg-white p-6 border-2 border-vintage-red shadow-[6px_6px_0px_0px_#782221] hover:shadow-[8px_8px_0px_0px_#782221] transition-all">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-16 h-16 bg-vintage-red/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="{{ template.icon_name }}" class="w-8 h-8 text-vintage-red"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-serif text-lg font-bold text-vintage-dark break-words">{{ template.name }}</h3>
+                            <span class="text-xs font-display uppercase tracking-widest text-vintage-red bg-vintage-red/10 px-2 py-1">Featured</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-vintage-brown mb-4 break-words">{{ template.description }}</p>
+                    <div class="space-y-2 mb-4">
+                        <p class="text-sm text-vintage-brown"><span class="font-bold">Target:</span> KSh {{ template.target_amount|floatformat:2 }}</p>
+                        <p class="text-sm text-vintage-brown"><span class="font-bold">Suggested Time:</span> {{ template.suggested_deadline_months }} months</p>
+                        <p class="text-sm text-vintage-brown"><span class="font-bold">Category:</span> {{ template.get_category_display }}</p>
+                    </div>
+                    <a href="{% url 'create_goal_from_template' template.id %}" class="block text-center bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-4 py-2 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                        Use Template
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Regular Templates -->
+        {% if regular_templates %}
+        <div>
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">All Templates</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for template in regular_templates %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm hover:shadow-md transition-all">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-16 h-16 bg-vintage-dark/5 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="{{ template.icon_name }}" class="w-8 h-8 text-vintage-brown"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-serif text-lg font-bold text-vintage-dark break-words">{{ template.name }}</h3>
+                        </div>
+                    </div>
+                    <p class="text-sm text-vintage-brown mb-4 break-words">{{ template.description }}</p>
+                    <div class="space-y-2 mb-4">
+                        <p class="text-sm text-vintage-brown"><span class="font-bold">Target:</span> KSh {{ template.target_amount|floatformat:2 }}</p>
+                        <p class="text-sm text-vintage-brown"><span class="font-bold">Suggested Time:</span> {{ template.suggested_deadline_months }} months</p>
+                    </div>
+                    <a href="{% url 'create_goal_from_template' template.id %}" class="block text-center bg-vintage-dark hover:bg-vintage-brown text-vintage-cream px-4 py-2 font-bold tracking-widest uppercase text-xs transition-colors border border-vintage-dark">
+                        Use Template
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not featured_templates and not regular_templates %}
+        <div class="text-center py-12 bg-white border border-vintage-dark/10 p-8">
+            <i data-lucide="file-text" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+            <p class="text-vintage-brown font-serif italic">No templates available yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

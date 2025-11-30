@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics & Reports - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-8">Savings Analytics</h1>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="coins" class="w-8 h-8 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Total Saved</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold">KSh {{ total_saved|floatformat:2 }}</h2>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="trending-up" class="w-8 h-8 {% if trend > 0 %}text-vintage-olive{% else %}text-vintage-red{% endif %}"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Trend</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif {% if trend > 0 %}text-vintage-olive{% else %}text-vintage-red{% endif %} font-bold">
+                    {% if trend > 0 %}+{% endif %}{{ trend|floatformat:1 }}%
+                </h2>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="gauge" class="w-8 h-8 text-vintage-brown"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Daily Velocity</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold">KSh {{ velocity|floatformat:2 }}</h2>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="target" class="w-8 h-8 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Goal Progress</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold">
+                    {% if total_goal_target > 0 %}
+                        {{ total_goal_current|floatformat:0 }} / {{ total_goal_target|floatformat:0 }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+
+        <!-- Monthly Savings Chart -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm mb-8">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Monthly Savings Trend</h2>
+            <canvas id="savingsChart" height="80"></canvas>
+        </div>
+
+        <!-- Monthly Breakdown -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Monthly Breakdown</h2>
+            <div class="space-y-3">
+                {% for month in months_data %}
+                <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                    <span class="font-serif text-base text-vintage-dark">{{ month.month }}</span>
+                    <span class="text-lg font-serif text-vintage-red font-bold">KSh {{ month.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+    const ctx = document.getElementById('savingsChart');
+    if (ctx) {
+        const monthsData = {{ months_data|safe }};
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthsData.map(m => m.month),
+                datasets: [{
+                    label: 'Savings (KSh)',
+                    data: monthsData.map(m => m.amount),
+                    borderColor: '#782221',
+                    backgroundColor: 'rgba(120, 34, 33, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'KSh ' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+{% endblock %}
+
