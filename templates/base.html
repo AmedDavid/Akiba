@@ -128,20 +128,34 @@
     {% if messages %}
     <div class="fixed top-20 md:top-24 right-2 md:right-6 z-50 space-y-2 max-w-xs md:max-w-md">
         {% for message in messages %}
-        <div class="bg-vintage-cream border-2 border-vintage-dark shadow-[4px_4px_0px_0px_#2C2420] p-3 md:p-4 {% if message.tags == 'error' %}border-vintage-red{% elif message.tags == 'success' %}border-vintage-olive{% endif %}">
-            <div class="flex items-center gap-2 md:gap-3">
+        <div class="bg-vintage-cream border-2 {% if message.tags == 'error' %}border-vintage-red bg-vintage-red/5{% elif message.tags == 'success' %}border-vintage-olive bg-vintage-olive/5{% else %}border-vintage-dark{% endif %} shadow-[4px_4px_0px_0px_#2C2420] p-3 md:p-4 animate-slide-in">
+            <div class="flex items-start gap-2 md:gap-3">
                 {% if message.tags == 'error' %}
-                    <i data-lucide="alert-circle" class="w-4 h-4 md:w-5 md:h-5 text-vintage-red flex-shrink-0"></i>
+                    <i data-lucide="alert-circle" class="w-4 h-4 md:w-5 md:h-5 text-vintage-red flex-shrink-0 mt-0.5"></i>
                 {% elif message.tags == 'success' %}
-                    <i data-lucide="check-circle" class="w-4 h-4 md:w-5 md:h-5 text-vintage-olive flex-shrink-0"></i>
+                    <i data-lucide="check-circle" class="w-4 h-4 md:w-5 md:h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
                 {% else %}
-                    <i data-lucide="info" class="w-4 h-4 md:w-5 md:h-5 text-vintage-brown flex-shrink-0"></i>
+                    <i data-lucide="info" class="w-4 h-4 md:w-5 md:h-5 text-vintage-brown flex-shrink-0 mt-0.5"></i>
                 {% endif %}
-                <span class="font-serif text-xs md:text-sm break-words">{{ message }}</span>
+                <span class="font-serif text-xs md:text-sm break-words flex-1">{{ message }}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="text-vintage-brown hover:text-vintage-red transition-colors flex-shrink-0">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
         </div>
         {% endfor %}
     </div>
+    <script>
+        // Auto-dismiss messages after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.fixed .space-y-2 > div').forEach(msg => {
+                msg.style.transition = 'opacity 0.3s, transform 0.3s';
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateX(100%)';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 5000);
+    </script>
     {% endif %}
 
     <!-- Main Content -->

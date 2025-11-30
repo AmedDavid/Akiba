@@ -223,15 +223,29 @@ def goal_create(request):
     if request.method == 'POST':
         form = GoalForm(request.POST)
         if form.is_valid():
+            # Validate deadline is in the future
+            deadline = form.cleaned_data['deadline']
+            if deadline <= timezone.now().date():
+                form.add_error('deadline', 'Deadline must be in the future.')
+                return render(request, 'core/goal_create.html', {
+                    'form': form,
+                    'today': timezone.now().date()
+                })
+            
             goal = form.save(commit=False)
             goal.user = request.user
             goal.save()
             messages.success(request, f'Goal "{goal.title}" created successfully!')
             return redirect('goal_detail', goal_id=goal.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = GoalForm()
     
-    return render(request, 'core/goal_create.html', {'form': form})
+    return render(request, 'core/goal_create.html', {
+        'form': form,
+        'today': timezone.now().date()
+    })
 
 
 @login_required

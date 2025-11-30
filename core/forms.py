@@ -78,9 +78,36 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ['avatar', 'phone']
         widgets = {
-            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'pattern': '[0-9+\\-\\s()]+',
+                'maxlength': '15'
+            }),
         }
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            # Remove common phone formatting characters
+            cleaned_phone = ''.join(filter(str.isdigit, phone))
+            if len(cleaned_phone) < 9 or len(cleaned_phone) > 15:
+                raise forms.ValidationError("Please enter a valid phone number (9-15 digits).")
+        return phone
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar')
+        if avatar:
+            # Check file size (max 5MB)
+            if avatar.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Image file too large (maximum 5MB).")
+            # Check file type
+            if not avatar.content_type.startswith('image/'):
+                raise forms.ValidationError("File must be an image.")
+        return avatar
 
 
 class GoalForm(forms.ModelForm):
