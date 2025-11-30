@@ -859,6 +859,7 @@ def recurring_plans_view(request):
 def savings_calculator(request):
     """Savings calculator tool"""
     result = None
+    monthly_savings = None
     
     if request.method == 'POST':
         target_amount = Decimal(request.POST.get('target_amount', 0))
@@ -877,7 +878,10 @@ def savings_calculator(request):
                     'daily_savings': monthly_savings / 30,
                 }
     
-    return render(request, 'core/calculator.html', {'result': result})
+    return render(request, 'core/calculator.html', {
+        'result': result,
+        'monthly_savings': monthly_savings
+    })
 
 
 @login_required
