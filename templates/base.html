@@ -91,12 +91,12 @@
                 </a>
                 
                 <!-- Gamification Dropdown -->
-                <div class="relative group">
-                    <button class="hover:text-vintage-red transition-colors flex items-center gap-1">
+                <div class="relative group" id="gamify-dropdown">
+                    <button type="button" class="hover:text-vintage-red transition-colors flex items-center gap-1 cursor-pointer">
                         Gamify
-                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-hover:rotate-180"></i>
+                        <i data-lucide="chevron-down" id="gamify-chevron" class="w-4 h-4 transition-transform"></i>
                     </button>
-                    <div class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <div id="gamify-menu" class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible pointer-events-none transition-all duration-200 z-50">
                         <div class="py-2">
                             <a href="{% url 'achievements' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
                                 <i data-lucide="award" class="w-4 h-4 inline-block mr-2"></i>
@@ -115,12 +115,12 @@
                 </div>
                 
                 <!-- Tools Dropdown -->
-                <div class="relative group">
-                    <button class="hover:text-vintage-red transition-colors flex items-center gap-1">
+                <div class="relative group" id="tools-dropdown">
+                    <button type="button" class="hover:text-vintage-red transition-colors flex items-center gap-1 cursor-pointer">
                         Tools
-                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-hover:rotate-180"></i>
+                        <i data-lucide="chevron-down" id="tools-chevron" class="w-4 h-4 transition-transform"></i>
                     </button>
-                    <div class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <div id="tools-menu" class="absolute top-full left-0 mt-2 w-48 bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible pointer-events-none transition-all duration-200 z-50">
                         <div class="py-2">
                             <a href="{% url 'analytics' %}" class="block px-4 py-2 hover:bg-vintage-red/10 hover:text-vintage-red transition-colors text-sm">
                                 <i data-lucide="bar-chart" class="w-4 h-4 inline-block mr-2"></i>
@@ -384,6 +384,46 @@
                 });
             });
         }
+        
+        // Desktop dropdown menus
+        const gamifyDropdown = document.getElementById('gamify-dropdown');
+        const gamifyMenu = document.getElementById('gamify-menu');
+        const gamifyChevron = document.getElementById('gamify-chevron');
+        const toolsDropdown = document.getElementById('tools-dropdown');
+        const toolsMenu = document.getElementById('tools-menu');
+        const toolsChevron = document.getElementById('tools-chevron');
+        
+        function showDropdown(menu, chevron) {
+            menu.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+            menu.classList.add('opacity-100', 'visible', 'pointer-events-auto');
+            chevron.style.transform = 'rotate(180deg)';
+        }
+        
+        function hideDropdown(menu, chevron) {
+            menu.classList.remove('opacity-100', 'visible', 'pointer-events-auto');
+            menu.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+            chevron.style.transform = 'rotate(0deg)';
+        }
+        
+        if (gamifyDropdown && gamifyMenu && gamifyChevron) {
+            gamifyDropdown.addEventListener('mouseenter', () => showDropdown(gamifyMenu, gamifyChevron));
+            gamifyDropdown.addEventListener('mouseleave', () => hideDropdown(gamifyMenu, gamifyChevron));
+        }
+        
+        if (toolsDropdown && toolsMenu && toolsChevron) {
+            toolsDropdown.addEventListener('mouseenter', () => showDropdown(toolsMenu, toolsChevron));
+            toolsDropdown.addEventListener('mouseleave', () => hideDropdown(toolsMenu, toolsChevron));
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (gamifyDropdown && !gamifyDropdown.contains(e.target)) {
+                hideDropdown(gamifyMenu, gamifyChevron);
+            }
+            if (toolsDropdown && !toolsDropdown.contains(e.target)) {
+                hideDropdown(toolsMenu, toolsChevron);
+            }
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
