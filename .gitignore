@@ -41,4 +41,7 @@ Thumbs.db
 /staticfiles/
 /static_collected/
 
-docs/
+# Documentation (allow .md files in docs/)
+docs/*
+!docs/*.md
+!docs/*.txt
