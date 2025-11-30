@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Tribe - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-4xl font-serif text-vintage-dark mb-8">Create New Tribe</h1>
+        
+        <div class="bg-white p-10 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Tribe Name</label>
+                    <input type="text" name="name" required class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.name.value|default:'' }}">
+                    {% if form.name.errors %}
+                        <p class="text-vintage-red text-sm mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Description</label>
+                    <textarea name="description" rows="4" required class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                        <p class="text-vintage-red text-sm mt-1">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="is_private" id="is_private" class="w-4 h-4 border-vintage-dark/20">
+                    <label for="is_private" class="text-sm text-vintage-brown">Make this tribe private</label>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="submit" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-10 py-4 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                        Create Tribe
+                    </button>
+                    <a href="{% url 'tribes' %}" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-10 py-4 font-bold tracking-widest uppercase text-xs transition-all">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

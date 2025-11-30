@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tribe.name }} - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-8">
+            <a href="{% url 'tribes' %}" class="text-vintage-red hover:underline font-bold font-display uppercase tracking-widest text-xs mb-4 inline-block">
+                ← Back to Tribes
+            </a>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-serif text-vintage-dark">{{ tribe.name }}</h1>
+                    <p class="text-vintage-brown font-serif italic mt-2">{{ tribe.description }}</p>
+                </div>
+                {% if not is_member %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="join" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                        Join Tribe
+                    </button>
+                </form>
+                {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="leave" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all">
+                        Leave Tribe
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Posts Section -->
+            <div class="lg:col-span-2 space-y-6">
+                {% if is_member and post_form %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                    <h2 class="text-2xl font-serif text-vintage-dark mb-4">Share Your Journey</h2>
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+                        <textarea name="content" rows="4" required 
+                                  class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"
+                                  placeholder="Share your savings progress, tips, or motivation..."></textarea>
+                        <button type="submit" name="post" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                            Post
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+                <!-- Posts List -->
+                <div class="space-y-4">
+                    {% if posts %}
+                        {% for post in posts %}
+                        <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-10 h-10 rounded-full bg-vintage-dark/10 flex items-center justify-center">
+                                    <i data-lucide="user" class="w-6 h-6 text-vintage-brown"></i>
+                                </div>
+                                <div>
+                                    <p class="font-serif text-vintage-dark font-bold">{{ post.user.username }}</p>
+                                    <p class="text-xs text-vintage-brown">{{ post.created_at|date:"F d, Y g:i A" }}</p>
+                                </div>
+                            </div>
+                            <p class="text-vintage-dark font-serif leading-relaxed">{{ post.content }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="bg-white p-12 border border-vintage-dark/10 text-center">
+                            <i data-lucide="message-circle" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+                            <p class="text-vintage-brown font-serif italic">No posts yet. Be the first to share!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Members -->
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                    <h2 class="text-2xl font-serif text-vintage-dark mb-4">Members ({{ members.count }})</h2>
+                    <div class="space-y-3">
+                        {% for member in members|slice:":10" %}
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-vintage-dark/10 flex items-center justify-center">
+                                <i data-lucide="user" class="w-5 h-5 text-vintage-brown"></i>
+                            </div>
+                            <span class="text-sm text-vintage-dark">{{ member.username }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                {% if member_profiles %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                    <h2 class="text-2xl font-serif text-vintage-dark mb-4">Tribe Leaderboard</h2>
+                    <div class="space-y-3">
+                        {% for profile in member_profiles %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-vintage-red font-bold">#{{ forloop.counter }}</span>
+                                <span class="text-sm text-vintage-dark">{{ profile.user.username }}</span>
+                            </div>
+                            <span class="text-sm font-serif text-vintage-red font-bold">KSh {{ profile.total_saved|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

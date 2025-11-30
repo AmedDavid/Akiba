@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Insights - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-4xl font-serif text-vintage-dark">Spending Insights</h1>
+            <a href="{% url 'upload_statement' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                Upload Statement
+            </a>
+        </div>
+
+        {% if latest %}
+        <!-- Latest Statement Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="arrow-down" class="w-8 h-8 text-vintage-olive"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Incoming</span>
+                </div>
+                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ latest.total_incoming|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="arrow-up" class="w-8 h-8 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Outgoing</span>
+                </div>
+                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ latest.total_outgoing|floatformat:2 }}</p>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="trending-down" class="w-8 h-8 text-vintage-brown"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Net</span>
+                </div>
+                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ net_amount|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <!-- Spending Categories -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm mb-8">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Spending Breakdown</h2>
+            <div class="space-y-4">
+                {% if latest.betting_spent > 0 %}
+                <div class="p-4 bg-vintage-red/5 border-l-4 border-vintage-red">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-serif text-lg text-vintage-dark">Betting</span>
+                        <span class="text-xl font-serif text-vintage-red font-bold">KSh {{ latest.betting_spent|floatformat:2 }}</span>
+                    </div>
+                    <p class="text-sm text-vintage-brown italic">That's enough for a PS5 or a month's rent!</p>
+                </div>
+                {% endif %}
+                
+                {% if latest.airtime_spent > 0 %}
+                <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-serif text-lg text-vintage-dark">Airtime</span>
+                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.airtime_spent|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if latest.fuliza_spent > 0 %}
+                <div class="p-4 bg-vintage-red/5 border-l-4 border-vintage-red">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-serif text-lg text-vintage-dark">Fuliza/M-Shwari</span>
+                        <span class="text-xl font-serif text-vintage-red font-bold">KSh {{ latest.fuliza_spent|floatformat:2 }}</span>
+                    </div>
+                    <p class="text-sm text-vintage-brown italic">Consider reducing credit usage to save more!</p>
+                </div>
+                {% endif %}
+                
+                {% if latest.bars_spent > 0 %}
+                <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-serif text-lg text-vintage-dark">Bars/Restaurants</span>
+                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.bars_spent|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if latest.till_withdrawals > 0 %}
+                <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-serif text-lg text-vintage-dark">Till Withdrawals</span>
+                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.till_withdrawals|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if latest.other_spent > 0 %}
+                <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-serif text-lg text-vintage-dark">Other</span>
+                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.other_spent|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm mb-8">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Spending Chart</h2>
+            <canvas id="spendingChart" height="100"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-white border border-vintage-dark/10 p-8">
+            <i data-lucide="file-text" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+            <p class="text-vintage-brown font-serif italic mb-4">No statements uploaded yet. Upload your first M-Pesa statement to get insights!</p>
+            <a href="{% url 'upload_statement' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark inline-block">
+                Upload Statement
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if latest %}
+{% block extra_js %}
+<script>
+    const ctx = document.getElementById('spendingChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Betting', 'Airtime', 'Fuliza', 'Bars', 'Till Withdrawals', 'Other'],
+                datasets: [{
+                    data: [
+                        {{ latest.betting_spent }},
+                        {{ latest.airtime_spent }},
+                        {{ latest.fuliza_spent }},
+                        {{ latest.bars_spent }},
+                        {{ latest.till_withdrawals }},
+                        {{ latest.other_spent }}
+                    ],
+                    backgroundColor: [
+                        '#782221',
+                        '#5D4037',
+                        '#9B2C2C',
+                        '#556B2F',
+                        '#C5A059',
+                        '#2C2420'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    }
+</script>
+{% endblock %}
+{% endif %}
+{% endblock %}
+

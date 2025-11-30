@@ -1,0 +1,183 @@
+# Akiba - Smart Savings Goal Tracker
+
+A production-ready Django application for tracking savings goals, analyzing M-Pesa statements, and building a community around smart saving habits.
+
+## Features
+
+- **User Authentication**: Register, login, logout, and profile management
+- **Savings Goals**: Create, track, and achieve savings goals with progress visualization
+- **Daily Saving Log**: Track daily savings with streak tracking
+- **M-Pesa Analysis**: Upload PDF statements and get automatic spending insights
+- **Tribes (Communities)**: Join or create savings communities, share posts, and compete on leaderboards
+- **Leaderboards**: National and tribe-specific leaderboards for top savers and streak champions
+- **Vintage Design**: Beautiful, heritage-inspired UI matching the template.html aesthetic
+
+## Tech Stack
+
+- Django 5.x
+- SQLite (default database)
+- Bootstrap 5 (via CDN)
+- Tailwind CSS (via CDN)
+- Chart.js for visualizations
+- PyPDF2 for M-Pesa statement parsing
+- Pillow for image handling
+
+## Setup Instructions
+
+### 1. Create Virtual Environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Run Migrations
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 4. Create Superuser
+
+```bash
+python manage.py createsuperuser
+```
+
+### 5. Run Development Server
+
+```bash
+python manage.py runserver
+```
+
+Visit `http://127.0.0.1:8000/` to see the application.
+
+## Project Structure
+
+```
+Akiba/
+├── akiba_project/          # Django project settings
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── core/                   # Main application
+│   ├── models.py          # UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost
+│   ├── views.py           # All view functions
+│   ├── forms.py           # Django forms
+│   ├── urls.py            # URL routing
+│   ├── admin.py           # Admin panel configuration
+│   └── signals.py         # Auto-create UserProfile
+├── templates/             # HTML templates
+│   ├── base.html          # Base template with vintage design
+│   └── core/              # App-specific templates
+├── media/                 # User-uploaded files
+│   ├── statements/        # M-Pesa PDF statements
+│   └── avatars/           # User avatars
+├── static/                # Static files (if any)
+├── requirements.txt       # Python dependencies
+├── .gitignore            # Git ignore rules
+└── README.md             # This file
+```
+
+## Key Models
+
+- **UserProfile**: Extended user profile with avatar, phone, total_saved, streaks
+- **Goal**: Savings goals with target amount, deadline, category, progress tracking
+- **DailySaving**: Daily savings log with amount and notes
+- **MpesaStatement**: Uploaded PDF statements with parsed spending data
+- **Tribe**: Community groups for savers
+- **TribePost**: Posts within tribes
+
+## Features in Detail
+
+### Savings Goals
+- Create goals with title, target amount, deadline, and category
+- Visual progress indicators (progress bars and circles)
+- Daily check-in functionality
+- Automatic achievement detection with confetti celebration
+- Projected finish date calculation
+
+### M-Pesa Analysis
+- Upload PDF statements
+- Automatic transaction parsing and categorization:
+  - Betting
+  - Airtime
+  - Fuliza/M-Shwari
+  - Bars/Restaurants
+  - Till withdrawals
+  - Other spending
+- Spending insights with visual charts
+- "You spent X on betting — that's a PS5" style callouts
+
+### Streaks
+- Daily check-in system
+- Current streak tracking
+- Longest streak record
+- Visual flame icon for active streaks
+
+### Tribes
+- Create public or private tribes
+- Join/leave functionality
+- Post sharing within tribes
+- Tribe-specific leaderboards
+- Member lists
+
+### Leaderboards
+- National top savers
+- Streak champions
+- Fastest goal achievers
+- Tribe-specific rankings
+
+## Design System
+
+The application follows the exact design system from `template.html`:
+- Vintage color palette (cream, dark brown, deep red, gold)
+- Playfair Display for headings, DM Sans for body text, Cinzel for display
+- Aged paper texture background
+- Vintage photo filters
+- Specific button styles with shadows and hover effects
+- Card designs with border styles and hover animations
+
+## Admin Panel
+
+Access the admin panel at `/admin/` after creating a superuser. All models are registered and can be managed through the Django admin interface.
+
+## Media Files
+
+User-uploaded files are stored in:
+- `media/statements/` - M-Pesa PDF statements
+- `media/avatars/` - User profile pictures
+
+These directories are excluded from Git via `.gitignore`.
+
+## Development Notes
+
+- The project uses SQLite by default (suitable for development)
+- All templates extend `base.html` which adapts the `template.html` design
+- Forms use manual Bootstrap styling to match the vintage aesthetic
+- M-Pesa PDF parsing uses regex patterns (may need adjustment for different statement formats)
+- Confetti animation uses canvas-confetti library for goal achievements
+
+## Future Enhancements
+
+- Email notifications for goal deadlines
+- Export savings reports
+- Mobile app integration
+- Advanced M-Pesa statement parsing
+- Goal templates
+- Savings challenges
+
+## License
+
+This project is part of a bootcamp final project.
+
+## Author
+
+Built as a production-ready Django application for smart savings tracking.
+

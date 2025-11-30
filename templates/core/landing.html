@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Akiba - Smart Savings Tracker{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="pt-36 pb-24 md:pt-48 md:pb-32 px-6 border-b border-double border-vintage-dark/10">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div class="space-y-12 relative z-10">
+            <div class="space-y-6">
+                <div class="inline-flex items-center gap-3 px-4 py-1.5 border border-vintage-red/30 bg-vintage-red/5 text-xs font-bold uppercase tracking-[0.2em] text-vintage-red font-display">
+                    <span class="w-1.5 h-1.5 rotate-45 bg-vintage-red"></span> Smart Savings
+                    <span class="w-1.5 h-1.5 rotate-45 bg-vintage-red"></span>
+                </div>
+                <h1 class="text-6xl md:text-8xl font-serif text-vintage-dark leading-[0.95] tracking-tight">
+                    Build Your <br>
+                    <i class="font-normal text-vintage-red">Future</i> <span class="text-5xl md:text-7xl align-middle">&</span><br>
+                    Track Your Progress
+                </h1>
+                <p class="text-lg md:text-xl text-vintage-brown max-w-lg leading-relaxed font-serif italic border-l-2 border-vintage-red pl-6">
+                    "Smart savings goal tracker with M-Pesa analysis. Build your future, one shilling at a time."
+                </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-5">
+                <a href="{% url 'register' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-10 py-4 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark text-center">
+                    Get Started
+                </a>
+                <a href="{% url 'login' %}" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-10 py-4 font-bold tracking-widest uppercase text-xs transition-all flex items-center justify-center gap-2">
+                    Sign In
+                </a>
+            </div>
+
+            <div class="pt-8 flex gap-8 border-t border-vintage-dark/10">
+                <div class="text-center">
+                    <span class="block text-3xl font-serif text-vintage-red font-bold">M-Pesa</span>
+                    <span class="text-[10px] uppercase tracking-widest text-vintage-brown">Analysis</span>
+                </div>
+                <div class="w-px bg-vintage-dark/10 h-10 self-center"></div>
+                <div class="text-center">
+                    <span class="block text-3xl font-serif text-vintage-red font-bold">Goals</span>
+                    <span class="text-[10px] uppercase tracking-widest text-vintage-brown">Tracking</span>
+                </div>
+                <div class="w-px bg-vintage-dark/10 h-10 self-center"></div>
+                <div class="text-center">
+                    <span class="block text-3xl font-serif text-vintage-red font-bold">Community</span>
+                    <span class="text-[10px] uppercase tracking-widest text-vintage-brown">Support</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="relative group p-6">
+            <div class="absolute inset-0 border-4 border-double border-vintage-dark/20 rotate-1"></div>
+            <div class="absolute inset-0 border border-vintage-dark/80 -rotate-1 bg-vintage-cream z-0"></div>
+            <div class="relative z-10 w-full h-[600px] bg-vintage-dark/5 border border-vintage-dark/10 shadow-xl flex items-center justify-center">
+                <i data-lucide="piggy-bank" class="w-32 h-32 text-vintage-red opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-28 px-6 bg-[#EFEDE6]">
+    <div class="max-w-7xl mx-auto space-y-20">
+        <div class="text-center space-y-5 max-w-2xl mx-auto">
+            <span class="text-vintage-red font-bold uppercase tracking-[0.3em] text-xs font-display">Features</span>
+            <h2 class="text-5xl md:text-6xl font-serif text-vintage-dark relative inline-block">
+                Everything You Need
+                <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-1 border-b-2 border-vintage-red border-double"></span>
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm">
+                <i data-lucide="target" class="w-12 h-12 text-vintage-red mb-4"></i>
+                <h3 class="font-serif text-2xl font-bold text-vintage-dark mb-3">Savings Goals</h3>
+                <p class="text-vintage-brown">Set goals, track progress, and celebrate achievements with visual progress indicators.</p>
+            </div>
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm">
+                <i data-lucide="file-text" class="w-12 h-12 text-vintage-red mb-4"></i>
+                <h3 class="font-serif text-2xl font-bold text-vintage-dark mb-3">M-Pesa Analysis</h3>
+                <p class="text-vintage-brown">Upload your statements and get insights into your spending patterns automatically.</p>
+            </div>
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm">
+                <i data-lucide="users" class="w-12 h-12 text-vintage-red mb-4"></i>
+                <h3 class="font-serif text-2xl font-bold text-vintage-dark mb-3">Tribes</h3>
+                <p class="text-vintage-brown">Join communities, share your journey, and stay motivated with others.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

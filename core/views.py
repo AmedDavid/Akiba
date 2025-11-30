@@ -195,7 +195,11 @@ def goal_detail(request, goal_id):
             messages.success(request, f'Goal "{goal.title}" marked as achieved!')
             return redirect('goal_detail', goal_id=goal_id)
     
-    return render(request, 'core/goal_detail.html', {'goal': goal})
+    remaining = goal.target_amount - goal.current_amount
+    return render(request, 'core/goal_detail.html', {
+        'goal': goal,
+        'remaining': max(Decimal('0.00'), remaining)
+    })
 
 
 @login_required
@@ -393,14 +397,17 @@ def insights(request):
     
     if statements.exists():
         latest = statements.first()
+        net_amount = latest.total_incoming - latest.total_outgoing
         context = {
             'statements': statements,
             'latest': latest,
+            'net_amount': net_amount,
         }
     else:
         context = {
             'statements': [],
             'latest': None,
+            'net_amount': Decimal('0.00'),
         }
     
     return render(request, 'core/insights.html', context)

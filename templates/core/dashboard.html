@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto space-y-8">
+        <!-- Welcome Header -->
+        <div class="text-center space-y-4">
+            <h1 class="text-5xl font-serif text-vintage-dark">Welcome, {{ user.username }}</h1>
+            <p class="text-vintage-brown font-serif italic text-lg">Track your progress and stay motivated</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Total Saved Card -->
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 hover:-translate-y-1">
+                <div class="flex items-center justify-between mb-4">
+                    <i data-lucide="coins" class="w-10 h-10 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Total Saved</span>
+                </div>
+                <h2 class="text-4xl font-serif text-vintage-dark font-bold">KSh {{ total_saved|floatformat:2 }}</h2>
+            </div>
+
+            <!-- Streak Card -->
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 hover:-translate-y-1">
+                <div class="flex items-center justify-between mb-4">
+                    {% if profile.current_streak > 0 %}
+                        <i data-lucide="flame" class="w-10 h-10 text-vintage-red"></i>
+                    {% else %}
+                        <i data-lucide="flame" class="w-10 h-10 text-vintage-brown opacity-50"></i>
+                    {% endif %}
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Current Streak</span>
+                </div>
+                <h2 class="text-4xl font-serif text-vintage-dark font-bold">{{ profile.current_streak }} days</h2>
+                <p class="text-sm text-vintage-brown mt-2">Longest: {{ profile.longest_streak }} days</p>
+            </div>
+
+            <!-- Active Goals Card -->
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 hover:-translate-y-1">
+                <div class="flex items-center justify-between mb-4">
+                    <i data-lucide="target" class="w-10 h-10 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Active Goals</span>
+                </div>
+                <h2 class="text-4xl font-serif text-vintage-dark font-bold">{{ active_goals|length }}</h2>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="flex flex-wrap gap-4 justify-center">
+            {% if not checked_in_today %}
+            <a href="{% url 'daily_saving_log' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                Check In Today
+            </a>
+            {% else %}
+            <div class="bg-vintage-olive/20 text-vintage-olive px-8 py-3 font-bold tracking-widest uppercase text-xs border border-vintage-olive">
+                ✓ Checked In Today
+            </div>
+            {% endif %}
+            <a href="{% url 'goal_create' %}" class="bg-vintage-dark hover:bg-vintage-brown text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-colors border border-vintage-dark">
+                New Goal
+            </a>
+            <a href="{% url 'upload_statement' %}" class="bg-transparent hover:bg-vintage-dark/5 text-vintage-dark border border-vintage-dark px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all">
+                Upload M-Pesa
+            </a>
+        </div>
+
+        <!-- Active Goals Section -->
+        {% if active_goals %}
+        <div class="mt-12">
+            <h2 class="text-3xl font-serif text-vintage-dark mb-6">Active Goals</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for goal in active_goals %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-serif text-vintage-dark font-bold">{{ goal.title }}</h3>
+                        <span class="text-xs font-display uppercase tracking-widest text-vintage-brown bg-vintage-brown/10 px-2 py-1">{{ goal.get_category_display }}</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-vintage-brown mb-2">
+                            <span>KSh {{ goal.current_amount|floatformat:2 }}</span>
+                            <span>KSh {{ goal.target_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="w-full bg-vintage-dark/10 h-4 border border-vintage-dark/20">
+                            <div class="bg-vintage-red h-full" style="width: {{ goal.progress_percentage }}%"></div>
+                        </div>
+                        <p class="text-xs text-vintage-brown mt-2 text-right">{{ goal.progress_percentage|floatformat:0 }}%</p>
+                    </div>
+                    <a href="{% url 'goal_detail' goal.id %}" class="text-xs font-bold border-b border-vintage-dark/20 uppercase tracking-widest pb-0.5 hover:border-vintage-red transition-colors inline-block">
+                        View Details
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-6">
+                <a href="{% url 'goals' %}" class="text-vintage-red hover:underline font-bold font-display uppercase tracking-widest text-xs">
+                    View All Goals →
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-white border border-vintage-dark/10 p-8">
+            <i data-lucide="target" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+            <p class="text-vintage-brown font-serif italic mb-4">No active goals yet. Create your first goal to get started!</p>
+            <a href="{% url 'goal_create' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark inline-block">
+                Create Goal
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Recent Savings -->
+        {% if recent_savings %}
+        <div class="mt-12">
+            <h2 class="text-3xl font-serif text-vintage-dark mb-6">Recent Savings</h2>
+            <div class="bg-white border border-vintage-dark/10 shadow-sm">
+                <div class="divide-y divide-vintage-dark/10">
+                    {% for saving in recent_savings %}
+                    <div class="p-6 flex items-center justify-between hover:bg-vintage-cream/50 transition-colors">
+                        <div>
+                            <p class="font-serif text-lg text-vintage-dark">{{ saving.date|date:"F d, Y" }}</p>
+                            {% if saving.note %}
+                            <p class="text-sm text-vintage-brown italic">{{ saving.note }}</p>
+                            {% endif %}
+                        </div>
+                        <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ saving.amount|floatformat:2 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

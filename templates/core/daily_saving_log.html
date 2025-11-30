@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Saving Log - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-serif text-vintage-dark mb-8">Daily Saving Log</h1>
+
+        <!-- Streak Info -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        {% if profile.current_streak > 0 %}
+                            <i data-lucide="flame" class="w-8 h-8 text-vintage-red"></i>
+                        {% else %}
+                            <i data-lucide="flame" class="w-8 h-8 text-vintage-brown opacity-50"></i>
+                        {% endif %}
+                        <h2 class="text-3xl font-serif text-vintage-dark font-bold">Current Streak: {{ profile.current_streak }} days</h2>
+                    </div>
+                    <p class="text-vintage-brown">Longest streak: {{ profile.longest_streak }} days</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Saving Form -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420] mb-8">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Log Today's Saving</h2>
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Amount (KSh)</label>
+                    <input type="number" name="amount" step="0.01" min="0.01" required 
+                           class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Note (Optional)</label>
+                    <textarea name="note" rows="3" 
+                              class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none"></textarea>
+                </div>
+                <button type="submit" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-10 py-4 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                    Save
+                </button>
+            </form>
+        </div>
+
+        <!-- Savings History -->
+        <div class="bg-white border border-vintage-dark/10 shadow-sm">
+            <div class="p-6 border-b border-vintage-dark/10">
+                <h2 class="text-2xl font-serif text-vintage-dark">Savings History</h2>
+            </div>
+            {% if savings %}
+            <div class="divide-y divide-vintage-dark/10">
+                {% for saving in savings %}
+                <div class="p-6 flex items-center justify-between hover:bg-vintage-cream/50 transition-colors">
+                    <div>
+                        <p class="font-serif text-lg text-vintage-dark">{{ saving.date|date:"F d, Y" }}</p>
+                        {% if saving.note %}
+                        <p class="text-sm text-vintage-brown italic mt-1">{{ saving.note }}</p>
+                        {% endif %}
+                    </div>
+                    <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ saving.amount|floatformat:2 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <i data-lucide="calendar" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+                <p class="text-vintage-brown font-serif italic">No savings logged yet. Start your journey today!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

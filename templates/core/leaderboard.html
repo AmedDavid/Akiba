@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto space-y-12">
+        <h1 class="text-4xl font-serif text-vintage-dark text-center">Leaderboards</h1>
+
+        <!-- National Leaderboard -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <h2 class="text-3xl font-serif text-vintage-dark mb-6">National Top Savers</h2>
+            {% if national_top %}
+            <div class="space-y-4">
+                {% for profile in national_top %}
+                <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl font-serif text-vintage-red font-bold w-12 text-center">#{{ forloop.counter }}</span>
+                        <div>
+                            <p class="font-serif text-lg text-vintage-dark font-bold">{{ profile.user.username }}</p>
+                            <p class="text-sm text-vintage-brown">Streak: {{ profile.current_streak }} days</p>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ profile.total_saved|floatformat:2 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-vintage-brown font-serif italic text-center py-8">No data yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Streak Leaders -->
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <h2 class="text-3xl font-serif text-vintage-dark mb-6">Streak Champions</h2>
+            {% if streak_leaders %}
+            <div class="space-y-4">
+                {% for profile in streak_leaders %}
+                <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <i data-lucide="flame" class="w-8 h-8 text-vintage-red"></i>
+                        <div>
+                            <p class="font-serif text-lg text-vintage-dark font-bold">{{ profile.user.username }}</p>
+                            <p class="text-sm text-vintage-brown">Total Saved: KSh {{ profile.total_saved|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-serif text-vintage-red font-bold">{{ profile.current_streak }} days</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-vintage-brown font-serif italic text-center py-8">No active streaks yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Tribe Leaderboards -->
+        {% if tribe_leaderboards %}
+        <div class="space-y-8">
+            <h2 class="text-3xl font-serif text-vintage-dark text-center">Your Tribe Leaderboards</h2>
+            {% for tribe, leaderboard in tribe_leaderboards.items %}
+            <div class="bg-white p-8 border border-vintage-dark/10 shadow-sm">
+                <h3 class="text-2xl font-serif text-vintage-dark mb-6">{{ tribe.name }}</h3>
+                {% if leaderboard %}
+                <div class="space-y-4">
+                    {% for profile in leaderboard %}
+                    <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xl font-serif text-vintage-red font-bold w-10 text-center">#{{ forloop.counter }}</span>
+                            <p class="font-serif text-lg text-vintage-dark font-bold">{{ profile.user.username }}</p>
+                        </div>
+                        <p class="text-xl font-serif text-vintage-red font-bold">KSh {{ profile.total_saved|floatformat:2 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-vintage-brown font-serif italic text-center py-8">No members yet.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

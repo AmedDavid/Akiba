@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Tribes - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-4xl font-serif text-vintage-dark">Tribes</h1>
+            <a href="{% url 'tribe_create' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                Create Tribe
+            </a>
+        </div>
+
+        {% if tribes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for tribe in tribes %}
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 hover:-translate-y-1">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-serif text-vintage-dark font-bold">{{ tribe.name }}</h3>
+                    {% if tribe.is_private %}
+                        <span class="text-xs font-display uppercase tracking-widest text-vintage-brown bg-vintage-brown/10 px-2 py-1">Private</span>
+                    {% endif %}
+                </div>
+                <p class="text-vintage-brown mb-4 line-clamp-3">{{ tribe.description }}</p>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-vintage-brown">{{ tribe.member_count }} members</span>
+                    <a href="{% url 'tribe_detail' tribe.id %}" class="text-xs font-bold border-b border-vintage-dark/20 uppercase tracking-widest pb-0.5 hover:border-vintage-red transition-colors">
+                        View →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-white border border-vintage-dark/10 p-8">
+            <i data-lucide="users" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+            <p class="text-vintage-brown font-serif italic mb-4">No tribes yet. Create the first one!</p>
+            <a href="{% url 'tribe_create' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark inline-block">
+                Create Tribe
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
