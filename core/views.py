@@ -12,11 +12,13 @@ from decimal import Decimal
 
 from .models import (
     UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost,
-    Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification
+    Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
+    Budget, RecurringSavingsPlan, GoalTemplate
 )
 from .forms import (
     CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm,
-    GoalForm, DailySavingForm, MpesaStatementForm, TribeForm, TribePostForm
+    GoalForm, DailySavingForm, MpesaStatementForm, TribeForm, TribePostForm,
+    BudgetForm, RecurringSavingsPlanForm
 )
 
 
@@ -721,3 +723,198 @@ def mark_notification_read(request, notification_id):
         return JsonResponse({'success': True})
     
     return redirect('notifications')
+
+
+@login_required
+def budget_view(request):
+    """Budget planning page"""
+    today = timezone.now().date()
+    current_month = today.replace(day=1)
+    
+    # Get or create current month budget
+    budget, created = Budget.objects.get_or_create(
+        user=request.user,
+        month=current_month,
+        defaults={'total_budget': Decimal('0.00'), 'savings_target': Decimal('0.00')}
+    )
+    
+    if request.method == 'POST':
+        form = BudgetForm(request.POST, instance=budget)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Budget updated successfully!')
+            return redirect('budget')
+    else:
+        form = BudgetForm(instance=budget)
+    
+    # Get all budgets
+    budgets = Budget.objects.filter(user=request.user).order_by('-month')[:12]
+    
+    return render(request, 'core/budget.html', {
+        'budget': budget,
+        'form': form,
+        'budgets': budgets,
+        'current_month': current_month,
+    })
+
+
+@login_required
+def analytics_view(request):
+    """Savings analytics and reports"""
+    today = timezone.now().date()
+    
+    # Get savings data for last 12 months
+    months_data = []
+    for i in range(11, -1, -1):
+        month_start = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
+        if month_start.month == 12:
+            month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            month_end = month_start.replace(month=month_start.month + 1, day=1) - timedelta(days=1)
+        
+        savings = DailySaving.objects.filter(
+            user=request.user,
+            date__gte=month_start,
+            date__lte=month_end
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        
+        months_data.append({
+            'month': month_start.strftime('%b %Y'),
+            'amount': float(savings),
+        })
+    
+    # Calculate trends
+    if len(months_data) >= 2:
+        recent_avg = sum(m['amount'] for m in months_data[-3:]) / 3
+        previous_avg = sum(m['amount'] for m in months_data[-6:-3]) / 3 if len(months_data) >= 6 else months_data[0]['amount']
+        trend = ((recent_avg - previous_avg) / previous_avg * 100) if previous_avg > 0 else 0
+    else:
+        trend = 0
+    
+    # Get total saved
+    total_saved = DailySaving.objects.filter(user=request.user).aggregate(
+        total=Sum('amount')
+    )['total'] or Decimal('0.00')
+    
+    # Get savings velocity (average per day)
+    first_saving = DailySaving.objects.filter(user=request.user).order_by('date').first()
+    if first_saving:
+        days_active = (today - first_saving.date).days or 1
+        velocity = float(total_saved) / days_active
+    else:
+        velocity = 0
+    
+    # Get goal progress
+    active_goals = Goal.objects.filter(user=request.user, achieved=False)
+    total_goal_target = sum(g.target_amount for g in active_goals)
+    total_goal_current = sum(g.current_amount for g in active_goals)
+    
+    return render(request, 'core/analytics.html', {
+        'months_data': months_data,
+        'trend': trend,
+        'total_saved': total_saved,
+        'velocity': velocity,
+        'total_goal_target': total_goal_target,
+        'total_goal_current': total_goal_current,
+    })
+
+
+@login_required
+def recurring_plans_view(request):
+    """Recurring savings plans page"""
+    plans = RecurringSavingsPlan.objects.filter(user=request.user).order_by('-created_at')
+    
+    if request.method == 'POST':
+        if 'create' in request.POST:
+            form = RecurringSavingsPlanForm(request.POST, user=request.user)
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Recurring plan "{plan.name}" created!')
+                return redirect('recurring_plans')
+        elif 'toggle' in request.POST:
+            plan_id = request.POST.get('plan_id')
+            plan = get_object_or_404(RecurringSavingsPlan, id=plan_id, user=request.user)
+            plan.is_active = not plan.is_active
+            plan.save()
+            messages.success(request, f'Plan {"activated" if plan.is_active else "deactivated"}!')
+            return redirect('recurring_plans')
+        elif 'delete' in request.POST:
+            plan_id = request.POST.get('plan_id')
+            plan = get_object_or_404(RecurringSavingsPlan, id=plan_id, user=request.user)
+            plan.delete()
+            messages.success(request, 'Plan deleted!')
+            return redirect('recurring_plans')
+    else:
+        form = RecurringSavingsPlanForm(user=request.user)
+    
+    return render(request, 'core/recurring_plans.html', {
+        'plans': plans,
+        'form': form,
+    })
+
+
+@login_required
+def savings_calculator(request):
+    """Savings calculator tool"""
+    result = None
+    
+    if request.method == 'POST':
+        target_amount = Decimal(request.POST.get('target_amount', 0))
+        current_amount = Decimal(request.POST.get('current_amount', 0))
+        monthly_savings = Decimal(request.POST.get('monthly_savings', 0))
+        deadline = request.POST.get('deadline')
+        
+        if target_amount > 0 and monthly_savings > 0:
+            remaining = target_amount - current_amount
+            if remaining > 0:
+                months_needed = (remaining / monthly_savings)
+                result = {
+                    'months': months_needed,
+                    'days': months_needed * 30,
+                    'weekly_savings': monthly_savings / 4,
+                    'daily_savings': monthly_savings / 30,
+                }
+    
+    return render(request, 'core/calculator.html', {'result': result})
+
+
+@login_required
+def goal_templates_view(request):
+    """Goal templates page"""
+    templates = GoalTemplate.objects.all().order_by('-is_featured', 'name')
+    featured = templates.filter(is_featured=True)
+    regular = templates.filter(is_featured=False)
+    
+    return render(request, 'core/goal_templates.html', {
+        'featured_templates': featured,
+        'regular_templates': regular,
+    })
+
+
+@login_required
+def create_goal_from_template(request, template_id):
+    """Create a goal from a template"""
+    template = get_object_or_404(GoalTemplate, id=template_id)
+    
+    if request.method == 'POST':
+        # Calculate deadline based on suggested months
+        from datetime import datetime
+        deadline = timezone.now().date() + timedelta(days=template.suggested_deadline_months * 30)
+        
+        goal = Goal.objects.create(
+            user=request.user,
+            title=template.name,
+            target_amount=template.target_amount,
+            deadline=deadline,
+            category=template.category
+        )
+        
+        messages.success(request, f'Goal "{goal.title}" created from template!')
+        return redirect('goal_detail', goal_id=goal.id)
+    
+    return render(request, 'core/create_from_template.html', {
+        'template': template,
+        'suggested_deadline': timezone.now().date() + timedelta(days=template.suggested_deadline_months * 30),
+    })

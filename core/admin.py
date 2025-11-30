@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     UserProfile, MpesaStatement, Goal, DailySaving, Tribe, TribePost,
-    Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification
+    Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
+    Budget, RecurringSavingsPlan, GoalTemplate
 )
 
 
@@ -80,3 +81,24 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ['user', 'notification_type', 'title', 'is_read', 'created_at']
     list_filter = ['notification_type', 'is_read', 'created_at']
     search_fields = ['user__username', 'title', 'message']
+
+
+@admin.register(Budget)
+class BudgetAdmin(admin.ModelAdmin):
+    list_display = ['user', 'month', 'total_budget', 'savings_target', 'created_at']
+    list_filter = ['month', 'created_at']
+    search_fields = ['user__username']
+
+
+@admin.register(RecurringSavingsPlan)
+class RecurringSavingsPlanAdmin(admin.ModelAdmin):
+    list_display = ['user', 'name', 'amount', 'frequency', 'is_active', 'start_date']
+    list_filter = ['frequency', 'is_active', 'start_date']
+    search_fields = ['user__username', 'name']
+
+
+@admin.register(GoalTemplate)
+class GoalTemplateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'category', 'target_amount', 'suggested_deadline_months', 'is_featured']
+    list_filter = ['category', 'is_featured', 'created_at']
+    search_fields = ['name', 'description']

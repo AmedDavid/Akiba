@@ -308,3 +308,141 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class Budget(models.Model):
+    """Monthly budget planning"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
+    month = models.DateField(help_text="First day of the month")
+    total_budget = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    savings_target = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, validators=[MinValueValidator(0)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.month.strftime('%B %Y')}"
+
+    def get_spent(self):
+        """Calculate total spent this month from M-Pesa statements"""
+        start_date = self.month
+        if start_date.day != 1:
+            start_date = start_date.replace(day=1)
+        
+        # Calculate end date (last day of month)
+        if start_date.month == 12:
+            end_date = start_date.replace(year=start_date.year + 1, month=1, day=1) - timezone.timedelta(days=1)
+        else:
+            end_date = start_date.replace(month=start_date.month + 1, day=1) - timezone.timedelta(days=1)
+        
+        statements = MpesaStatement.objects.filter(
+            user=self.user,
+            uploaded_at__date__gte=start_date,
+            uploaded_at__date__lte=end_date
+        )
+        return sum(s.total_outgoing for s in statements)
+
+    def get_saved(self):
+        """Calculate total saved this month"""
+        start_date = self.month
+        if start_date.day != 1:
+            start_date = start_date.replace(day=1)
+        
+        if start_date.month == 12:
+            end_date = start_date.replace(year=start_date.year + 1, month=1, day=1) - timezone.timedelta(days=1)
+        else:
+            end_date = start_date.replace(month=start_date.month + 1, day=1) - timezone.timedelta(days=1)
+        
+        savings = DailySaving.objects.filter(
+            user=self.user,
+            date__gte=start_date,
+            date__lte=end_date
+        )
+        return sum(s.amount for s in savings)
+
+    def remaining_budget(self):
+        return self.total_budget - self.get_spent()
+
+    def budget_percentage(self):
+        if self.total_budget == 0:
+            return 0
+        return min(100, (self.get_spent() / self.total_budget) * 100)
+
+    class Meta:
+        unique_together = ['user', 'month']
+        ordering = ['-month']
+
+
+class RecurringSavingsPlan(models.Model):
+    """Automatic recurring savings plans"""
+    FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recurring_plans')
+    name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, default='monthly')
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    linked_goal = models.ForeignKey(Goal, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_plans')
+    last_executed = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"
+
+    def should_execute(self):
+        """Check if plan should execute today"""
+        if not self.is_active:
+            return False
+        
+        today = timezone.now().date()
+        
+        if today < self.start_date:
+            return False
+        
+        if self.end_date and today > self.end_date:
+            return False
+        
+        if self.last_executed == today:
+            return False
+        
+        if self.frequency == 'daily':
+            return True
+        elif self.frequency == 'weekly':
+            if not self.last_executed:
+                return True
+            days_since = (today - self.last_executed).days
+            return days_since >= 7
+        elif self.frequency == 'monthly':
+            if not self.last_executed:
+                return True
+            # Check if it's been at least a month
+            return (today.year > self.last_executed.year) or \
+                   (today.year == self.last_executed.year and today.month > self.last_executed.month)
+        
+        return False
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class GoalTemplate(models.Model):
+    """Pre-made goal templates"""
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    category = models.CharField(max_length=20, choices=Goal.CATEGORY_CHOICES, default='other')
+    suggested_deadline_months = models.IntegerField(default=12, help_text="Suggested months to achieve goal")
+    icon_name = models.CharField(max_length=50, default='target', help_text="Lucide icon name")
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-is_featured', 'name']

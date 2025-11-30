@@ -29,5 +29,11 @@ urlpatterns = [
     path('challenges/<int:challenge_id>/', views.challenge_detail, name='challenge_detail'),
     path('notifications/', views.notifications_view, name='notifications'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('budget/', views.budget_view, name='budget'),
+    path('analytics/', views.analytics_view, name='analytics'),
+    path('recurring-plans/', views.recurring_plans_view, name='recurring_plans'),
+    path('calculator/', views.savings_calculator, name='calculator'),
+    path('goal-templates/', views.goal_templates_view, name='goal_templates'),
+    path('goal-templates/<int:template_id>/create/', views.create_goal_from_template, name='create_goal_from_template'),
 ]
 

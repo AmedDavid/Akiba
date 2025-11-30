@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost
+from .models import (
+    UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost,
+    Budget, RecurringSavingsPlan, GoalTemplate
+)
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -159,4 +162,36 @@ class TribePostForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Share your savings journey...'}),
         }
+
+
+class BudgetForm(forms.ModelForm):
+    class Meta:
+        model = Budget
+        fields = ['month', 'total_budget', 'savings_target']
+        widgets = {
+            'month': forms.DateInput(attrs={'class': 'form-control', 'type': 'month'}),
+            'total_budget': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'savings_target': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+        }
+
+
+class RecurringSavingsPlanForm(forms.ModelForm):
+    class Meta:
+        model = RecurringSavingsPlan
+        fields = ['name', 'amount', 'frequency', 'start_date', 'end_date', 'linked_goal']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'frequency': forms.Select(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'linked_goal': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['linked_goal'].queryset = Goal.objects.filter(user=user, achieved=False)
+            self.fields['linked_goal'].required = False
 
