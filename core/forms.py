@@ -5,12 +5,68 @@ from .models import UserProfile, Goal, DailySaving, MpesaStatement, Tribe, Tribe
 
 
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    phone = forms.CharField(max_length=15, required=False)
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'your.email@example.com'
+        })
+    )
+    phone = forms.CharField(
+        max_length=15, 
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'pattern': '[0-9+\\-\\s()]+',
+            'placeholder': '0712345678'
+        })
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'phone', 'password1', 'password2')
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'minlength': '3',
+                'maxlength': '150',
+                'pattern': '[a-zA-Z0-9_]+'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].widget.attrs.update({
+            'class': 'form-control',
+            'minlength': '8'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'class': 'form-control',
+            'minlength': '8'
+        })
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if len(username) < 3:
+            raise forms.ValidationError("Username must be at least 3 characters long.")
+        if not username.replace('_', '').isalnum():
+            raise forms.ValidationError("Username can only contain letters, numbers, and underscores.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            # Remove common phone formatting characters
+            cleaned_phone = ''.join(filter(str.isdigit, phone))
+            if len(cleaned_phone) < 9 or len(cleaned_phone) > 15:
+                raise forms.ValidationError("Please enter a valid phone number.")
+        return phone
 
 
 class CustomAuthenticationForm(AuthenticationForm):

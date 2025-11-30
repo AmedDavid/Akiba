@@ -40,6 +40,9 @@ def register_view(request):
             login(request, user)
             messages.success(request, 'Account created successfully! Welcome to Akiba!')
             return redirect('dashboard')
+        else:
+            # Form has errors - they'll be displayed in template
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = CustomUserCreationForm()
     
@@ -58,6 +61,8 @@ def login_view(request):
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
             return redirect('dashboard')
+        else:
+            messages.error(request, 'Invalid username or password. Please try again.')
     else:
         form = CustomAuthenticationForm()
     
