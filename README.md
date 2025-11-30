@@ -164,14 +164,25 @@ These directories are excluded from Git via `.gitignore`.
 - M-Pesa PDF parsing uses regex patterns (may need adjustment for different statement formats)
 - Confetti animation uses canvas-confetti library for goal achievements
 
+## Documentation
+
+Comprehensive documentation is available:
+
+- **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)** - Complete project documentation with all features, setup, and usage
+- **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - Detailed API endpoint reference
+- **[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** - Developer guide for extending the project
+- **[docs/FEATURE_COMPARISON.md](docs/FEATURE_COMPARISON.md)** - Comparison of planned vs implemented features
+- **[docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Production deployment guide
+
 ## Future Enhancements
 
 - Email notifications for goal deadlines
 - Export savings reports
 - Mobile app integration
 - Advanced M-Pesa statement parsing
-- Goal templates
-- Savings challenges
+- AI integration (Gemini) for personalized financial advice
+- Merchant blocking feature
+- Voice notes from top savers
 
 ## License
 
