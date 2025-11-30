@@ -10,7 +10,10 @@ import PyPDF2
 import re
 from decimal import Decimal
 
-from .models import UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost
+from .models import (
+    UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost,
+    Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification
+)
 from .forms import (
     CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm,
     GoalForm, DailySavingForm, MpesaStatementForm, TribeForm, TribePostForm
@@ -109,6 +112,27 @@ def dashboard(request):
     # Get recent M-Pesa insights
     recent_statement = MpesaStatement.objects.filter(user=request.user).first()
     
+    # Get recent achievements
+    recent_achievements = UserAchievement.objects.filter(user=request.user).order_by('-earned_at')[:5]
+    total_achievements = UserAchievement.objects.filter(user=request.user).count()
+    
+    # Get active challenges
+    active_challenges = SavingsChallenge.objects.filter(
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    ).filter(
+        Q(participants=request.user) | Q(challenge_type='monthly')
+    ).distinct()[:3]
+    
+    # Get unread notifications
+    unread_notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    # Check all achievements
+    from .achievements import check_all_achievements
+    check_all_achievements(request.user)
+    
     context = {
         'profile': profile,
         'active_goals': active_goals,
@@ -116,6 +140,11 @@ def dashboard(request):
         'total_saved': total_saved,
         'checked_in_today': checked_in_today,
         'recent_statement': recent_statement,
+        'recent_achievements': recent_achievements,
+        'total_achievements': total_achievements,
+        'active_challenges': active_challenges,
+        'unread_notifications': unread_notifications,
+        'unread_count': unread_count,
     }
     return render(request, 'core/dashboard.html', context)
 
@@ -189,6 +218,33 @@ def goal_detail(request, goal_id):
                 request.user.userprofile.total_saved = total_saved
                 request.user.userprofile.update_streak()
                 request.user.userprofile.save()
+                
+                # Update challenge progress
+                today = timezone.now().date()
+                active_challenges = SavingsChallenge.objects.filter(
+                    is_active=True,
+                    start_date__lte=today,
+                    end_date__gte=today,
+                    participants=request.user
+                )
+                for challenge in active_challenges:
+                    progress, _ = ChallengeProgress.objects.get_or_create(
+                        user=request.user,
+                        challenge=challenge
+                    )
+                    # Add amount to challenge progress
+                    progress.amount_saved += amount
+                    if progress.amount_saved >= challenge.target_amount and not progress.completed:
+                        progress.completed = True
+                        progress.completed_at = timezone.now()
+                        Notification.objects.create(
+                            user=request.user,
+                            notification_type='challenge_completed',
+                            title=f'Challenge Completed: {challenge.name}',
+                            message=f'Congratulations! You\'ve completed the "{challenge.name}" challenge!',
+                            related_challenge=challenge
+                        )
+                    progress.save()
                 
                 # Check if goal achieved
                 if goal.current_amount >= goal.target_amount and not goal.achieved:
@@ -549,3 +605,119 @@ def leaderboard(request):
         'fastest_achievers': fastest_achievers,
         'tribe_leaderboards': tribe_leaderboards,
     })
+
+
+@login_required
+def achievements_view(request):
+    """User achievements page"""
+    user_achievements = UserAchievement.objects.filter(user=request.user).order_by('-earned_at')
+    all_achievements = Achievement.objects.all().order_by('points', 'name')
+    
+    # Get earned achievement IDs
+    earned_ids = set(user_achievements.values_list('achievement_id', flat=True))
+    
+    # Separate earned and unearned
+    earned = [ua.achievement for ua in user_achievements]
+    unearned = [a for a in all_achievements if a.id not in earned_ids]
+    
+    # Calculate stats
+    total_points = sum(ua.achievement.points for ua in user_achievements)
+    completion_rate = (len(earned) / len(all_achievements) * 100) if all_achievements.exists() else 0
+    
+    return render(request, 'core/achievements.html', {
+        'earned_achievements': earned,
+        'unearned_achievements': unearned,
+        'total_points': total_points,
+        'completion_rate': completion_rate,
+        'total_count': len(earned),
+    })
+
+
+@login_required
+def challenges_view(request):
+    """Savings challenges page"""
+    today = timezone.now().date()
+    
+    # Get all active challenges
+    active_challenges = SavingsChallenge.objects.filter(
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today
+    ).order_by('-created_at')
+    
+    # Get user's challenge progress
+    user_progress = ChallengeProgress.objects.filter(user=request.user).select_related('challenge')
+    
+    # Get completed challenges
+    completed_challenges = SavingsChallenge.objects.filter(
+        is_active=True,
+        end_date__lt=today
+    ).order_by('-end_date')[:10]
+    
+    return render(request, 'core/challenges.html', {
+        'active_challenges': active_challenges,
+        'user_progress': user_progress,
+        'completed_challenges': completed_challenges,
+    })
+
+
+@login_required
+def challenge_detail(request, challenge_id):
+    """Challenge detail page"""
+    challenge = get_object_or_404(SavingsChallenge, id=challenge_id)
+    progress, created = ChallengeProgress.objects.get_or_create(
+        user=request.user,
+        challenge=challenge
+    )
+    
+    # Get all participants and their progress
+    participants = challenge.participants.all()
+    all_progress = ChallengeProgress.objects.filter(challenge=challenge).order_by('-amount_saved')
+    
+    is_participant = request.user in participants
+    
+    if request.method == 'POST' and 'join' in request.POST:
+        if not is_participant:
+            challenge.participants.add(request.user)
+            progress, _ = ChallengeProgress.objects.get_or_create(
+                user=request.user,
+                challenge=challenge
+            )
+            messages.success(request, f'Joined challenge: {challenge.name}')
+            return redirect('challenge_detail', challenge_id=challenge_id)
+    
+    return render(request, 'core/challenge_detail.html', {
+        'challenge': challenge,
+        'progress': progress,
+        'is_participant': is_participant,
+        'all_progress': all_progress,
+    })
+
+
+@login_required
+def notifications_view(request):
+    """User notifications page"""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Mark all as read
+    if request.method == 'POST' and 'mark_all_read' in request.POST:
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        messages.success(request, 'All notifications marked as read')
+        return redirect('notifications')
+    
+    return render(request, 'core/notifications.html', {
+        'notifications': notifications,
+    })
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True})
+    
+    return redirect('notifications')

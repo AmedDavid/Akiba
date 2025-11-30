@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ challenge.name }} - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white p-8 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
+            <div class="mb-6">
+                <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-2">{{ challenge.name }}</h1>
+                <p class="text-vintage-brown font-serif italic break-words">{{ challenge.description }}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-vintage-cream/30 p-4 border border-vintage-dark/10">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Target Amount</p>
+                    <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ challenge.target_amount|floatformat:2 }}</p>
+                </div>
+                <div class="bg-vintage-cream/30 p-4 border border-vintage-dark/10">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">Start Date</p>
+                    <p class="text-lg font-serif text-vintage-dark font-bold">{{ challenge.start_date|date:"M d, Y" }}</p>
+                </div>
+                <div class="bg-vintage-cream/30 p-4 border border-vintage-dark/10">
+                    <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-1">End Date</p>
+                    <p class="text-lg font-serif text-vintage-dark font-bold">{{ challenge.end_date|date:"M d, Y" }}</p>
+                </div>
+            </div>
+
+            <!-- User Progress -->
+            {% if is_participant %}
+            <div class="mb-8 p-6 bg-vintage-cream/30 border border-vintage-dark/10">
+                <h2 class="text-xl font-serif text-vintage-dark mb-4">Your Progress</h2>
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-vintage-brown mb-2">
+                        <span>Saved: KSh {{ progress.amount_saved|floatformat:2 }}</span>
+                        <span class="font-bold">{{ progress.progress_percentage|floatformat:0 }}%</span>
+                    </div>
+                    <div class="w-full bg-vintage-dark/10 h-4 border border-vintage-dark/20">
+                        <div class="bg-vintage-red h-full transition-all" style="width: {{ progress.progress_percentage }}%"></div>
+                    </div>
+                </div>
+                {% if progress.completed %}
+                <div class="bg-vintage-olive/20 text-vintage-olive px-4 py-2 border border-vintage-olive text-center">
+                    <p class="font-bold">🎉 Challenge Completed!</p>
+                </div>
+                {% else %}
+                <p class="text-sm text-vintage-brown">Keep saving to complete this challenge!</p>
+                {% endif %}
+            </div>
+            {% else %}
+            <form method="post" class="mb-8">
+                {% csrf_token %}
+                <button type="submit" name="join" class="w-full bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-4 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                    Join Challenge
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- Leaderboard -->
+            {% if all_progress %}
+            <div>
+                <h2 class="text-xl font-serif text-vintage-dark mb-4">Leaderboard</h2>
+                <div class="space-y-2">
+                    {% for p in all_progress %}
+                    <div class="flex items-center justify-between p-4 border border-vintage-dark/10 {% if p.user == user %}bg-vintage-red/5{% else %}hover:bg-vintage-cream/50{% endif %} transition-colors">
+                        <div class="flex items-center gap-4 flex-1 min-w-0">
+                            <span class="text-lg font-serif text-vintage-red font-bold w-8 text-center flex-shrink-0">#{{ forloop.counter }}</span>
+                            <p class="font-serif text-base text-vintage-dark font-bold break-words">{{ p.user.username }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-serif text-vintage-red font-bold">KSh {{ p.amount_saved|floatformat:2 }}</p>
+                            <p class="text-xs text-vintage-brown">{{ p.progress_percentage|floatformat:0 }}%</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

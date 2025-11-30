@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import UserProfile, MpesaStatement, Goal, DailySaving, Tribe, TribePost
+from .models import (
+    UserProfile, MpesaStatement, Goal, DailySaving, Tribe, TribePost,
+    Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification
+)
 
 
 @admin.register(UserProfile)
@@ -42,3 +45,38 @@ class TribePostAdmin(admin.ModelAdmin):
     list_display = ['tribe', 'user', 'created_at']
     list_filter = ['created_at', 'tribe']
     search_fields = ['user__username', 'content']
+
+
+@admin.register(Achievement)
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ['name', 'criteria_type', 'criteria_value', 'points', 'rarity']
+    list_filter = ['rarity', 'criteria_type']
+    search_fields = ['name', 'description']
+
+
+@admin.register(UserAchievement)
+class UserAchievementAdmin(admin.ModelAdmin):
+    list_display = ['user', 'achievement', 'earned_at', 'notified']
+    list_filter = ['earned_at', 'notified', 'achievement']
+    search_fields = ['user__username', 'achievement__name']
+
+
+@admin.register(SavingsChallenge)
+class SavingsChallengeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'challenge_type', 'target_amount', 'start_date', 'end_date', 'is_active']
+    list_filter = ['challenge_type', 'is_active', 'start_date']
+    search_fields = ['name', 'description']
+
+
+@admin.register(ChallengeProgress)
+class ChallengeProgressAdmin(admin.ModelAdmin):
+    list_display = ['user', 'challenge', 'amount_saved', 'completed', 'updated_at']
+    list_filter = ['completed', 'updated_at']
+    search_fields = ['user__username', 'challenge__name']
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'notification_type', 'title', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['user__username', 'title', 'message']

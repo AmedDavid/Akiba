@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Challenges - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-2">Savings Challenges</h1>
+            <p class="text-vintage-brown font-serif italic">Join challenges and compete with others</p>
+        </div>
+
+        <!-- Active Challenges -->
+        {% if active_challenges %}
+        <div class="mb-12">
+            <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark mb-6">Active Challenges</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for challenge in active_challenges %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 hover:-translate-y-1">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="font-serif text-xl font-bold text-vintage-dark flex-1 break-words">{{ challenge.name }}</h3>
+                        {% for progress in user_progress %}
+                            {% if progress.challenge_id == challenge.id %}
+                                <span class="text-xs font-display uppercase tracking-widest text-vintage-olive bg-vintage-olive/20 px-2 py-1 border border-vintage-olive/30 whitespace-nowrap">Joined</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm text-vintage-brown mb-4 break-words">{{ challenge.description|truncatewords:20 }}</p>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-xs text-vintage-brown">
+                            <span>Target:</span>
+                            <span class="font-bold text-vintage-red">KSh {{ challenge.target_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-vintage-brown">
+                            <span>Period:</span>
+                            <span>{{ challenge.start_date|date:"M d" }} - {{ challenge.end_date|date:"M d, Y" }}</span>
+                        </div>
+                        {% for progress in user_progress %}
+                            {% if progress.challenge_id == challenge.id %}
+                            <div class="mt-3">
+                                <div class="flex justify-between text-xs text-vintage-brown mb-1">
+                                    <span>Your Progress:</span>
+                                    <span class="font-bold">{{ progress.progress_percentage|floatformat:0 }}%</span>
+                                </div>
+                                <div class="w-full bg-vintage-dark/10 h-2 border border-vintage-dark/20">
+                                    <div class="bg-vintage-red h-full" style="width: {{ progress.progress_percentage }}%"></div>
+                                </div>
+                                <p class="text-xs text-vintage-brown mt-1">KSh {{ progress.amount_saved|floatformat:2 }} saved</p>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'challenge_detail' challenge.id %}" class="block text-center bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-4 py-2 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                        {% if challenge.id in progress_dict %}View Details{% else %}Join Challenge{% endif %}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-white border border-vintage-dark/10 p-8 mb-12">
+            <i data-lucide="calendar" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+            <p class="text-vintage-brown font-serif italic mb-4">No active challenges at the moment.</p>
+            <p class="text-sm text-vintage-brown">Check back soon for new challenges!</p>
+        </div>
+        {% endif %}
+
+        <!-- Completed Challenges -->
+        {% if completed_challenges %}
+        <div>
+            <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark mb-6">Completed Challenges</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for challenge in completed_challenges %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm opacity-75">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="font-serif text-xl font-bold text-vintage-dark flex-1 break-words">{{ challenge.name }}</h3>
+                        <span class="text-xs font-display uppercase tracking-widest text-vintage-brown bg-vintage-brown/10 px-2 py-1 border border-vintage-brown/20">Ended</span>
+                    </div>
+                    <p class="text-sm text-vintage-brown mb-4 break-words">{{ challenge.description|truncatewords:20 }}</p>
+                    <div class="text-xs text-vintage-brown">
+                        <p>Ended: {{ challenge.end_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Custom template filter for dictionary lookup
+    const progressDict = {{ progress_dict|safe }};
+</script>
+{% endblock %}
+

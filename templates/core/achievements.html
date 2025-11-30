@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Achievements - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark mb-2">Achievements</h1>
+            <p class="text-vintage-brown font-serif italic">Your savings milestones and badges</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="trophy" class="w-8 h-8 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Total Points</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold">{{ total_points }}</h2>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="award" class="w-8 h-8 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Earned</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold">{{ total_count }}</h2>
+            </div>
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="target" class="w-8 h-8 text-vintage-red"></i>
+                    <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Completion</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold">{{ completion_rate|floatformat:0 }}%</h2>
+            </div>
+        </div>
+
+        <!-- Earned Achievements -->
+        {% if earned_achievements %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Earned Achievements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for achievement in earned_achievements %}
+                <div class="bg-white p-6 border-2 border-vintage-red shadow-[6px_6px_0px_0px_#782221] hover:shadow-[8px_8px_0px_0px_#782221] transition-all">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-16 h-16 bg-vintage-red/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="{{ achievement.icon_name }}" class="w-8 h-8 text-vintage-red"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-serif text-lg font-bold text-vintage-dark mb-1 break-words">{{ achievement.name }}</h3>
+                            <span class="inline-block text-xs font-display uppercase tracking-widest px-2 py-1 bg-vintage-{{ achievement.rarity }}/20 text-vintage-{{ achievement.rarity }} border border-vintage-{{ achievement.rarity }}/30">
+                                {{ achievement.get_rarity_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-vintage-brown mb-3 break-words">{{ achievement.description }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-vintage-brown">{{ achievement.points }} points</span>
+                        <i data-lucide="check-circle" class="w-5 h-5 text-vintage-olive"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Unearned Achievements -->
+        {% if unearned_achievements %}
+        <div>
+            <h2 class="text-2xl font-serif text-vintage-dark mb-6">Available Achievements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for achievement in unearned_achievements %}
+                <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm opacity-60">
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-16 h-16 bg-vintage-dark/5 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="{{ achievement.icon_name }}" class="w-8 h-8 text-vintage-brown"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-serif text-lg font-bold text-vintage-dark mb-1 break-words">{{ achievement.name }}</h3>
+                            <span class="inline-block text-xs font-display uppercase tracking-widest px-2 py-1 bg-vintage-dark/10 text-vintage-brown border border-vintage-dark/20">
+                                {{ achievement.get_rarity_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-vintage-brown mb-3 break-words">{{ achievement.description }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-vintage-brown">{{ achievement.points }} points</span>
+                        <i data-lucide="lock" class="w-5 h-5 text-vintage-brown"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not earned_achievements and not unearned_achievements %}
+        <div class="text-center py-12 bg-white border border-vintage-dark/10 p-8">
+            <i data-lucide="trophy" class="w-16 h-16 text-vintage-brown opacity-50 mx-auto mb-4"></i>
+            <p class="text-vintage-brown font-serif italic">No achievements available yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

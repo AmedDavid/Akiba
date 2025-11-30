@@ -24,5 +24,10 @@ urlpatterns = [
     path('tribes/create/', views.tribe_create, name='tribe_create'),
     path('tribes/<int:tribe_id>/', views.tribe_detail, name='tribe_detail'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('achievements/', views.achievements_view, name='achievements'),
+    path('challenges/', views.challenges_view, name='challenges'),
+    path('challenges/<int:challenge_id>/', views.challenge_detail, name='challenge_detail'),
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
 ]
 

@@ -92,10 +92,24 @@
                     Leaderboard
                     <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
                 </a>
+                <a href="{% url 'achievements' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Achievements
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
+                <a href="{% url 'challenges' %}" class="hover:text-vintage-red transition-colors relative group">
+                    Challenges
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-vintage-red transition-all group-hover:w-full"></span>
+                </a>
             </div>
             
             <!-- Desktop User Actions -->
             <div class="hidden md:flex items-center gap-4 lg:gap-6">
+                <a href="{% url 'notifications' %}" class="relative hover:text-vintage-red transition-colors text-vintage-dark" title="Notifications">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    {% if unread_count > 0 %}
+                    <span class="absolute -top-1 -right-1 bg-vintage-red text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
                 <a href="{% url 'profile' %}" class="flex items-center gap-2 hover:text-vintage-red transition-colors text-vintage-dark" title="Profile">
                     {% if user.userprofile.avatar %}
                         <img src="{{ user.userprofile.avatar.url }}" alt="Profile" class="w-8 h-8 rounded-full border-2 border-vintage-red object-cover">
@@ -139,6 +153,18 @@
                     </a>
                     <a href="{% url 'leaderboard' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
                         Leaderboard
+                    </a>
+                    <a href="{% url 'achievements' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                        Achievements
+                    </a>
+                    <a href="{% url 'challenges' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red">
+                        Challenges
+                    </a>
+                    <a href="{% url 'notifications' %}" class="block py-3 px-4 text-sm font-bold text-vintage-dark tracking-[0.15em] uppercase font-display hover:bg-vintage-dark/5 hover:text-vintage-red transition-colors border-l-2 border-transparent hover:border-vintage-red relative">
+                        Notifications
+                        {% if unread_count > 0 %}
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 bg-vintage-red text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{{ unread_count }}</span>
+                        {% endif %}
                     </a>
                     <div class="border-t border-vintage-dark/10 mt-2 pt-2">
                         <a href="{% url 'logout' %}" class="block py-3 px-4 text-sm font-bold text-vintage-red tracking-[0.15em] uppercase font-display hover:bg-vintage-red/10 transition-colors">

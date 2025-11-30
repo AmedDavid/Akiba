@@ -173,3 +173,138 @@ class TribePost(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class Achievement(models.Model):
+    """Achievement/Badge definitions"""
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    icon_name = models.CharField(max_length=50, help_text="Lucide icon name (e.g., 'trophy', 'star')")
+    criteria_type = models.CharField(max_length=50, choices=[
+        ('first_goal', 'Create First Goal'),
+        ('goal_achieved', 'Achieve a Goal'),
+        ('streak_7', '7 Day Streak'),
+        ('streak_30', '30 Day Streak'),
+        ('streak_100', '100 Day Streak'),
+        ('total_saved_1000', 'Save KSh 1,000'),
+        ('total_saved_10000', 'Save KSh 10,000'),
+        ('total_saved_100000', 'Save KSh 100,000'),
+        ('join_tribe', 'Join a Tribe'),
+        ('create_tribe', 'Create a Tribe'),
+        ('top_saver', 'Top 10 Saver'),
+        ('upload_statement', 'Upload M-Pesa Statement'),
+    ])
+    criteria_value = models.IntegerField(default=1, help_text="Number required (e.g., 7 for 7-day streak)")
+    points = models.IntegerField(default=10, help_text="Points awarded for this achievement")
+    rarity = models.CharField(max_length=20, choices=[
+        ('common', 'Common'),
+        ('uncommon', 'Uncommon'),
+        ('rare', 'Rare'),
+        ('epic', 'Epic'),
+        ('legendary', 'Legendary'),
+    ], default='common')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['points', 'name']
+
+
+class UserAchievement(models.Model):
+    """User's earned achievements"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='achievements')
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE, related_name='user_achievements')
+    earned_at = models.DateTimeField(auto_now_add=True)
+    notified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.achievement.name}"
+
+    class Meta:
+        unique_together = ['user', 'achievement']
+        ordering = ['-earned_at']
+
+
+class SavingsChallenge(models.Model):
+    """Savings challenges users can participate in"""
+    CHALLENGE_TYPES = [
+        ('monthly', 'Monthly Challenge'),
+        ('custom', 'Custom Challenge'),
+        ('tribe', 'Tribe Challenge'),
+    ]
+    
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    challenge_type = models.CharField(max_length=20, choices=CHALLENGE_TYPES, default='monthly')
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+    tribe = models.ForeignKey(Tribe, on_delete=models.CASCADE, null=True, blank=True, related_name='challenges')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_challenges')
+    participants = models.ManyToManyField(User, related_name='challenges', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    def is_ongoing(self):
+        today = timezone.now().date()
+        return self.is_active and self.start_date <= today <= self.end_date
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class ChallengeProgress(models.Model):
+    """User's progress in a challenge"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='challenge_progress')
+    challenge = models.ForeignKey(SavingsChallenge, on_delete=models.CASCADE, related_name='progress')
+    amount_saved = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, validators=[MinValueValidator(0)])
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.challenge.name}"
+
+    def progress_percentage(self):
+        if self.challenge.target_amount == 0:
+            return 0
+        return min(100, (self.amount_saved / self.challenge.target_amount) * 100)
+
+    class Meta:
+        unique_together = ['user', 'challenge']
+        ordering = ['-amount_saved']
+
+
+class Notification(models.Model):
+    """User notifications"""
+    NOTIFICATION_TYPES = [
+        ('goal_deadline', 'Goal Deadline Approaching'),
+        ('goal_achieved', 'Goal Achieved'),
+        ('streak_milestone', 'Streak Milestone'),
+        ('achievement_earned', 'Achievement Earned'),
+        ('challenge_started', 'Challenge Started'),
+        ('challenge_completed', 'Challenge Completed'),
+        ('tribe_activity', 'Tribe Activity'),
+        ('reminder', 'Reminder'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    related_goal = models.ForeignKey(Goal, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    related_achievement = models.ForeignKey(UserAchievement, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    related_challenge = models.ForeignKey(SavingsChallenge, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+    class Meta:
+        ordering = ['-created_at']

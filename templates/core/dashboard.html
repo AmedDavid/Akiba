@@ -65,6 +65,70 @@
             </a>
         </div>
 
+        <!-- Notifications Badge -->
+        {% if unread_count > 0 %}
+        <div class="mt-6 text-center">
+            <a href="{% url 'notifications' %}" class="inline-flex items-center gap-2 bg-vintage-red/10 hover:bg-vintage-red/20 text-vintage-red px-4 py-2 rounded border border-vintage-red/30 transition-colors">
+                <i data-lucide="bell" class="w-4 h-4"></i>
+                <span class="text-sm font-bold">{{ unread_count }} unread notification{{ unread_count|pluralize }}</span>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Achievements & Challenges Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+            <!-- Recent Achievements -->
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-serif text-vintage-dark">Achievements</h2>
+                    <a href="{% url 'achievements' %}" class="text-xs font-bold uppercase tracking-widest text-vintage-brown hover:text-vintage-red transition-colors">
+                        View All →
+                    </a>
+                </div>
+                {% if recent_achievements %}
+                <div class="space-y-3">
+                    {% for ua in recent_achievements %}
+                    <div class="flex items-center gap-3 p-3 bg-vintage-cream/30 border border-vintage-dark/10">
+                        <i data-lucide="{{ ua.achievement.icon_name }}" class="w-6 h-6 text-vintage-red flex-shrink-0"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-serif text-sm font-bold text-vintage-dark break-words">{{ ua.achievement.name }}</p>
+                            <p class="text-xs text-vintage-brown">{{ ua.earned_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-vintage-brown font-serif italic text-sm text-center py-4">No achievements yet. Start saving to earn badges!</p>
+                {% endif %}
+                <div class="mt-4 text-center">
+                    <span class="text-xs text-vintage-brown">Total: {{ total_achievements }} achievement{{ total_achievements|pluralize }}</span>
+                </div>
+            </div>
+
+            <!-- Active Challenges -->
+            <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-serif text-vintage-dark">Challenges</h2>
+                    <a href="{% url 'challenges' %}" class="text-xs font-bold uppercase tracking-widest text-vintage-brown hover:text-vintage-red transition-colors">
+                        View All →
+                    </a>
+                </div>
+                {% if active_challenges %}
+                <div class="space-y-3">
+                    {% for challenge in active_challenges %}
+                    <a href="{% url 'challenge_detail' challenge.id %}" class="block p-3 bg-vintage-cream/30 border border-vintage-dark/10 hover:bg-vintage-red/5 hover:border-vintage-red transition-colors">
+                        <p class="font-serif text-sm font-bold text-vintage-dark break-words">{{ challenge.name }}</p>
+                        <p class="text-xs text-vintage-brown mt-1">{{ challenge.start_date|date:"M d" }} - {{ challenge.end_date|date:"M d, Y" }}</p>
+                        <p class="text-xs text-vintage-red font-bold mt-1">Target: KSh {{ challenge.target_amount|floatformat:2 }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-vintage-brown font-serif italic text-sm text-center py-4">No active challenges. Check back soon!</p>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Active Goals Section -->
         {% if active_goals %}
         <div class="mt-12">
