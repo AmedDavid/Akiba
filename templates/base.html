@@ -59,12 +59,12 @@
 <body class="bg-vintage-cream text-vintage-dark antialiased selection:bg-vintage-red selection:text-white bg-texture">
     <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 bg-[#F5F2E9]/95 backdrop-blur-sm border-b-2 border-vintage-dark/10">
-        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}" class="flex items-center gap-2 group">
-                <i data-lucide="piggy-bank" class="w-8 h-8 text-vintage-red stroke-[1.5]"></i>
+        <div class="max-w-7xl mx-auto px-4 md:px-6 h-20 md:h-24 flex items-center justify-between">
+            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}" class="flex items-center gap-1 md:gap-2 group">
+                <i data-lucide="piggy-bank" class="w-6 h-6 md:w-8 md:h-8 text-vintage-red stroke-[1.5]"></i>
                 <div class="flex flex-col">
-                    <span class="text-2xl font-black font-serif tracking-tighter text-vintage-dark leading-none">Ak<span class="text-vintage-red italic font-normal">iba</span></span>
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-vintage-brown font-display">Smart Savings</span>
+                    <span class="text-xl md:text-2xl font-black font-serif tracking-tighter text-vintage-dark leading-none">Ak<span class="text-vintage-red italic font-normal">iba</span></span>
+                    <span class="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-vintage-brown font-display">Smart Savings</span>
                 </div>
             </a>
             {% if user.is_authenticated %}
@@ -126,18 +126,18 @@
 
     <!-- Messages -->
     {% if messages %}
-    <div class="fixed top-24 right-6 z-50 space-y-2 max-w-md">
+    <div class="fixed top-20 md:top-24 right-2 md:right-6 z-50 space-y-2 max-w-xs md:max-w-md">
         {% for message in messages %}
-        <div class="bg-vintage-cream border-2 border-vintage-dark shadow-[4px_4px_0px_0px_#2C2420] p-4 {% if message.tags == 'error' %}border-vintage-red{% elif message.tags == 'success' %}border-vintage-olive{% endif %}">
-            <div class="flex items-center gap-3">
+        <div class="bg-vintage-cream border-2 border-vintage-dark shadow-[4px_4px_0px_0px_#2C2420] p-3 md:p-4 {% if message.tags == 'error' %}border-vintage-red{% elif message.tags == 'success' %}border-vintage-olive{% endif %}">
+            <div class="flex items-center gap-2 md:gap-3">
                 {% if message.tags == 'error' %}
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-vintage-red"></i>
+                    <i data-lucide="alert-circle" class="w-4 h-4 md:w-5 md:h-5 text-vintage-red flex-shrink-0"></i>
                 {% elif message.tags == 'success' %}
-                    <i data-lucide="check-circle" class="w-5 h-5 text-vintage-olive"></i>
+                    <i data-lucide="check-circle" class="w-4 h-4 md:w-5 md:h-5 text-vintage-olive flex-shrink-0"></i>
                 {% else %}
-                    <i data-lucide="info" class="w-5 h-5 text-vintage-brown"></i>
+                    <i data-lucide="info" class="w-4 h-4 md:w-5 md:h-5 text-vintage-brown flex-shrink-0"></i>
                 {% endif %}
-                <span class="font-serif text-sm">{{ message }}</span>
+                <span class="font-serif text-xs md:text-sm break-words">{{ message }}</span>
             </div>
         </div>
         {% endfor %}
@@ -145,7 +145,7 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main class="pt-24">
+    <main class="pt-20 md:pt-24">
         {% block content %}{% endblock %}
     </main>
 

@@ -23,8 +23,8 @@
             <a href="{% url 'goals' %}" class="text-vintage-red hover:underline font-bold font-display uppercase tracking-widest text-xs mb-4 inline-block">
                 ← Back to Goals
             </a>
-            <h1 class="text-4xl font-serif text-vintage-dark">{{ goal.title }}</h1>
-            <p class="text-vintage-brown font-serif italic mt-2">{{ goal.get_category_display }} • Deadline: {{ goal.deadline|date:"F d, Y" }}</p>
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-serif text-vintage-dark break-words">{{ goal.title }}</h1>
+            <p class="text-vintage-brown font-serif italic mt-2 text-sm md:text-base break-words">{{ goal.get_category_display }} • Deadline: {{ goal.deadline|date:"F d, Y" }}</p>
         </div>
 
         {% if goal.achieved %}
@@ -36,10 +36,10 @@
         {% endif %}
 
         <!-- Progress Circle -->
-        <div class="bg-white p-10 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420] mb-8">
-            <div class="text-center mb-8">
+        <div class="bg-white p-6 md:p-10 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420] mb-8">
+            <div class="text-center mb-6 md:mb-8">
                 <div class="relative inline-block">
-                    <svg class="transform -rotate-90 w-48 h-48">
+                    <svg class="transform -rotate-90 w-32 h-32 md:w-48 md:h-48">
                         <circle cx="96" cy="96" r="88" stroke="#E5E5E5" stroke-width="8" fill="none"></circle>
                         <circle cx="96" cy="96" r="88" stroke="#782221" stroke-width="8" fill="none" 
                                 stroke-dasharray="{{ goal.progress_percentage|floatformat:0 }} 100" 
@@ -48,21 +48,21 @@
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="text-center">
-                            <p class="text-4xl font-serif text-vintage-dark font-bold">{{ goal.progress_percentage|floatformat:0 }}%</p>
-                            <p class="text-sm text-vintage-brown">Complete</p>
+                            <p class="text-2xl md:text-3xl lg:text-4xl font-serif text-vintage-dark font-bold">{{ goal.progress_percentage|floatformat:0 }}%</p>
+                            <p class="text-xs md:text-sm text-vintage-brown">Complete</p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-6 text-center">
+            <div class="grid grid-cols-2 gap-4 md:gap-6 text-center">
                 <div>
                     <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-2">Current</p>
-                    <p class="text-2xl font-serif text-vintage-dark font-bold">KSh {{ goal.current_amount|floatformat:2 }}</p>
+                    <p class="text-lg md:text-xl lg:text-2xl font-serif text-vintage-dark font-bold break-words">KSh {{ goal.current_amount|floatformat:2 }}</p>
                 </div>
                 <div>
                     <p class="text-xs font-display uppercase tracking-widest text-vintage-brown mb-2">Target</p>
-                    <p class="text-2xl font-serif text-vintage-dark font-bold">KSh {{ goal.target_amount|floatformat:2 }}</p>
+                    <p class="text-lg md:text-xl lg:text-2xl font-serif text-vintage-dark font-bold break-words">KSh {{ goal.target_amount|floatformat:2 }}</p>
                 </div>
             </div>
             
@@ -83,11 +83,11 @@
             <h2 class="text-2xl font-serif text-vintage-dark mb-4">Add to Goal</h2>
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-                <div class="flex gap-4">
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <input type="number" name="amount" step="0.01" min="0.01" required 
                            placeholder="Amount (KSh)" 
-                           class="flex-1 px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">
-                    <button type="submit" name="add_amount" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+                           class="flex-1 px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none text-base">
+                    <button type="submit" name="add_amount" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 md:px-8 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark whitespace-nowrap">
                         Add
                     </button>
                 </div>

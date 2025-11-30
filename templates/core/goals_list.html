@@ -5,9 +5,9 @@
 {% block content %}
 <section class="py-12 px-6">
     <div class="max-w-7xl mx-auto">
-        <div class="flex items-center justify-between mb-8">
-            <h1 class="text-4xl font-serif text-vintage-dark">My Goals</h1>
-            <a href="{% url 'goal_create' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark">My Goals</h1>
+            <a href="{% url 'goal_create' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-4 md:px-6 py-2 md:py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark whitespace-nowrap">
                 New Goal
             </a>
         </div>

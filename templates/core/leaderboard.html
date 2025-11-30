@@ -13,15 +13,15 @@
             {% if national_top %}
             <div class="space-y-4">
                 {% for profile in national_top %}
-                <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <span class="text-2xl font-serif text-vintage-red font-bold w-12 text-center">#{{ forloop.counter }}</span>
-                        <div>
-                            <p class="font-serif text-lg text-vintage-dark font-bold">{{ profile.user.username }}</p>
-                            <p class="text-sm text-vintage-brown">Streak: {{ profile.current_streak }} days</p>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                    <div class="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                        <span class="text-xl md:text-2xl font-serif text-vintage-red font-bold w-8 md:w-12 text-center flex-shrink-0">#{{ forloop.counter }}</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-serif text-base md:text-lg text-vintage-dark font-bold break-words">{{ profile.user.username }}</p>
+                            <p class="text-xs md:text-sm text-vintage-brown">Streak: {{ profile.current_streak }} days</p>
                         </div>
                     </div>
-                    <p class="text-2xl font-serif text-vintage-red font-bold">KSh {{ profile.total_saved|floatformat:2 }}</p>
+                    <p class="text-xl md:text-2xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ profile.total_saved|floatformat:2 }}</p>
                 </div>
                 {% endfor %}
             </div>
@@ -36,15 +36,15 @@
             {% if streak_leaders %}
             <div class="space-y-4">
                 {% for profile in streak_leaders %}
-                <div class="flex items-center justify-between p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <i data-lucide="flame" class="w-8 h-8 text-vintage-red"></i>
-                        <div>
-                            <p class="font-serif text-lg text-vintage-dark font-bold">{{ profile.user.username }}</p>
-                            <p class="text-sm text-vintage-brown">Total Saved: KSh {{ profile.total_saved|floatformat:2 }}</p>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border border-vintage-dark/10 hover:bg-vintage-cream/50 transition-colors">
+                    <div class="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                        <i data-lucide="flame" class="w-6 h-6 md:w-8 md:h-8 text-vintage-red flex-shrink-0"></i>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-serif text-base md:text-lg text-vintage-dark font-bold break-words">{{ profile.user.username }}</p>
+                            <p class="text-xs md:text-sm text-vintage-brown break-words">Total Saved: KSh {{ profile.total_saved|floatformat:2 }}</p>
                         </div>
                     </div>
-                    <p class="text-2xl font-serif text-vintage-red font-bold">{{ profile.current_streak }} days</p>
+                    <p class="text-xl md:text-2xl font-serif text-vintage-red font-bold whitespace-nowrap">{{ profile.current_streak }} days</p>
                 </div>
                 {% endfor %}
             </div>

@@ -13,7 +13,7 @@
                 
                 <div>
                     <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Title</label>
-                    <input type="text" name="title" required class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.title.value|default:'' }}">
+                    <input type="text" name="title" required class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.title.value|default:'' }}">
                     {% if form.title.errors %}
                         <p class="text-vintage-red text-sm mt-1">{{ form.title.errors.0 }}</p>
                     {% endif %}
@@ -21,7 +21,7 @@
                 
                 <div>
                     <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Target Amount (KSh)</label>
-                    <input type="number" name="target_amount" step="0.01" min="0.01" required class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.target_amount.value|default:'' }}">
+                    <input type="number" name="target_amount" step="0.01" min="0.01" required class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.target_amount.value|default:'' }}">
                     {% if form.target_amount.errors %}
                         <p class="text-vintage-red text-sm mt-1">{{ form.target_amount.errors.0 }}</p>
                     {% endif %}
@@ -29,7 +29,7 @@
                 
                 <div>
                     <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Deadline</label>
-                    <input type="date" name="deadline" required class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.deadline.value|default:'' }}">
+                    <input type="date" name="deadline" required class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" value="{{ form.deadline.value|default:'' }}">
                     {% if form.deadline.errors %}
                         <p class="text-vintage-red text-sm mt-1">{{ form.deadline.errors.0 }}</p>
                     {% endif %}
@@ -37,7 +37,7 @@
                 
                 <div>
                     <label class="block text-xs font-bold font-display uppercase tracking-widest text-vintage-dark mb-2">Category</label>
-                    <select name="category" required class="w-full px-4 py-3 border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">
+                    <select name="category" required class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none">
                         {% for value, label in form.category.field.choices %}
                             <option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}

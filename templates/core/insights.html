@@ -5,9 +5,9 @@
 {% block content %}
 <section class="py-12 px-6">
     <div class="max-w-7xl mx-auto">
-        <div class="flex items-center justify-between mb-8">
-            <h1 class="text-4xl font-serif text-vintage-dark">Spending Insights</h1>
-            <a href="{% url 'upload_statement' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-6 py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h1 class="text-3xl md:text-4xl font-serif text-vintage-dark">Spending Insights</h1>
+            <a href="{% url 'upload_statement' %}" class="bg-vintage-red hover:bg-vintage-redlight text-vintage-cream px-4 md:px-6 py-2 md:py-3 font-bold tracking-widest uppercase text-xs transition-all shadow-[4px_4px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#2C2420] border border-vintage-dark whitespace-nowrap">
                 Upload Statement
             </a>
         </div>
@@ -20,21 +20,21 @@
                     <i data-lucide="arrow-down" class="w-8 h-8 text-vintage-olive"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Incoming</span>
                 </div>
-                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ latest.total_incoming|floatformat:2 }}</p>
+                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ latest.total_incoming|floatformat:2 }}</p>
             </div>
             <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
                 <div class="flex items-center gap-3 mb-2">
                     <i data-lucide="arrow-up" class="w-8 h-8 text-vintage-red"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Outgoing</span>
                 </div>
-                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ latest.total_outgoing|floatformat:2 }}</p>
+                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ latest.total_outgoing|floatformat:2 }}</p>
             </div>
             <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
                 <div class="flex items-center gap-3 mb-2">
                     <i data-lucide="trending-down" class="w-8 h-8 text-vintage-brown"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Net</span>
                 </div>
-                <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ net_amount|floatformat:2|default:"0.00" }}</p>
+                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ net_amount|floatformat:2|default:"0.00" }}</p>
             </div>
         </div>
 
@@ -44,56 +44,56 @@
             <div class="space-y-4">
                 {% if latest.betting_spent > 0 %}
                 <div class="p-4 bg-vintage-red/5 border-l-4 border-vintage-red">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-serif text-lg text-vintage-dark">Betting</span>
-                        <span class="text-xl font-serif text-vintage-red font-bold">KSh {{ latest.betting_spent|floatformat:2 }}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                        <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Betting</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ latest.betting_spent|floatformat:2 }}</span>
                     </div>
-                    <p class="text-sm text-vintage-brown italic">That's enough for a PS5 or a month's rent!</p>
+                    <p class="text-xs md:text-sm text-vintage-brown italic break-words">That's enough for a PS5 or a month's rent!</p>
                 </div>
                 {% endif %}
                 
                 {% if latest.airtime_spent > 0 %}
                 <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-serif text-lg text-vintage-dark">Airtime</span>
-                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.airtime_spent|floatformat:2 }}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                        <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Airtime</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.airtime_spent|floatformat:2 }}</span>
                     </div>
                 </div>
                 {% endif %}
                 
                 {% if latest.fuliza_spent > 0 %}
                 <div class="p-4 bg-vintage-red/5 border-l-4 border-vintage-red">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-serif text-lg text-vintage-dark">Fuliza/M-Shwari</span>
-                        <span class="text-xl font-serif text-vintage-red font-bold">KSh {{ latest.fuliza_spent|floatformat:2 }}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                        <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Fuliza/M-Shwari</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ latest.fuliza_spent|floatformat:2 }}</span>
                     </div>
-                    <p class="text-sm text-vintage-brown italic">Consider reducing credit usage to save more!</p>
+                    <p class="text-xs md:text-sm text-vintage-brown italic break-words">Consider reducing credit usage to save more!</p>
                 </div>
                 {% endif %}
                 
                 {% if latest.bars_spent > 0 %}
                 <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-serif text-lg text-vintage-dark">Bars/Restaurants</span>
-                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.bars_spent|floatformat:2 }}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                        <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Bars/Restaurants</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.bars_spent|floatformat:2 }}</span>
                     </div>
                 </div>
                 {% endif %}
                 
                 {% if latest.till_withdrawals > 0 %}
                 <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-serif text-lg text-vintage-dark">Till Withdrawals</span>
-                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.till_withdrawals|floatformat:2 }}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                        <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Till Withdrawals</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.till_withdrawals|floatformat:2 }}</span>
                     </div>
                 </div>
                 {% endif %}
                 
                 {% if latest.other_spent > 0 %}
                 <div class="p-4 bg-vintage-brown/5 border-l-4 border-vintage-brown">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-serif text-lg text-vintage-dark">Other</span>
-                        <span class="text-xl font-serif text-vintage-brown font-bold">KSh {{ latest.other_spent|floatformat:2 }}</span>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                        <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Other</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.other_spent|floatformat:2 }}</span>
                     </div>
                 </div>
                 {% endif %}
