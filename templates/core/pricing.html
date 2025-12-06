@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing - Akiba{% endblock %}
+
+{% block content %}
+<section class="py-12 px-6">
+    <div class="max-w-6xl mx-auto space-y-12">
+        <!-- Header -->
+        <div class="text-center space-y-4">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-serif text-vintage-dark">Choose Your Plan</h1>
+            <p class="text-vintage-brown font-serif italic text-base md:text-lg">Unlock your full savings potential</p>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Free Tier -->
+            <div class="bg-white p-8 border-2 border-vintage-dark/20 shadow-sm hover:shadow-[6px_6px_0px_0px_#2C2420] transition-all duration-500">
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold mb-2">Free</h2>
+                        <p class="text-4xl md:text-5xl font-serif text-vintage-red font-bold">KSh 0</p>
+                        <p class="text-sm text-vintage-brown mt-1">Forever free</p>
+                    </div>
+                    
+                    <ul class="space-y-3 text-vintage-dark">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Up to 3 months of M-Pesa statement analysis</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Up to 3 active goals</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Basic streak tracking</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Join up to 2 public tribes</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Basic insights and charts</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>3 months analytics</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Savings calculator</span>
+                        </li>
+                    </ul>
+                    
+                    {% if is_pro %}
+                        <button class="w-full py-3 px-6 bg-vintage-dark text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-brown transition-colors cursor-not-allowed" disabled>
+                            Current Plan
+                        </button>
+                    {% else %}
+                        <button class="w-full py-3 px-6 bg-vintage-dark text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-brown transition-colors cursor-not-allowed" disabled>
+                            Current Plan
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Pro Tier -->
+            <div class="bg-white p-8 border-2 border-vintage-red shadow-[6px_6px_0px_0px_#782221] hover:shadow-[8px_8px_0px_0px_#782221] transition-all duration-500 relative">
+                {% if is_pro %}
+                    <div class="absolute top-4 right-4 bg-vintage-red text-white px-3 py-1 text-xs font-display uppercase tracking-widest">
+                        Active
+                    </div>
+                {% else %}
+                    <div class="absolute top-4 right-4 bg-vintage-gold text-vintage-dark px-3 py-1 text-xs font-display uppercase tracking-widest">
+                        Popular
+                    </div>
+                {% endif %}
+                
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-serif text-vintage-dark font-bold mb-2">Pro</h2>
+                        <p class="text-4xl md:text-5xl font-serif text-vintage-red font-bold">KSh {{ pro_price }}</p>
+                        <p class="text-sm text-vintage-brown mt-1">per month</p>
+                    </div>
+                    
+                    <ul class="space-y-3 text-vintage-dark">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Unlimited</strong> M-Pesa statement analysis (12 months)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Unlimited</strong> goals</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Streak multipliers & recovery</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Unlimited</strong> tribes (create & join private)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Advanced "Leak Buster" reports</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>12 months analytics & trends</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Budget planning & tracking</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Recurring savings plans</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Export reports (PDF/Excel)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Challenge creation</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-5 h-5 text-vintage-olive flex-shrink-0 mt-0.5"></i>
+                            <span>Priority support</span>
+                        </li>
+                    </ul>
+                    
+                    {% if is_pro %}
+                        <button class="w-full py-3 px-6 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors cursor-not-allowed" disabled>
+                            Active Subscription
+                        </button>
+                    {% else %}
+                        <!-- Payment Options Modal Trigger -->
+                        <button onclick="openPaymentModal()" class="w-full py-3 px-6 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                            Upgrade to Pro
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg max-w-md w-full p-8 space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-serif text-vintage-dark font-bold">Choose Payment Method</h3>
+                    <button onclick="closePaymentModal()" class="text-vintage-dark hover:text-vintage-red transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- M-Pesa Option -->
+                    <form method="POST" action="{% url 'upgrade_mpesa' %}" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-sm font-display uppercase tracking-widest text-vintage-dark mb-2">M-Pesa Phone Number</label>
+                            <input type="tel" name="phone_number" required 
+                                   class="w-full px-4 py-3 border border-vintage-dark/20 bg-white text-vintage-dark focus:outline-none focus:border-vintage-red text-base"
+                                   placeholder="254712345678" 
+                                   pattern="[0-9]{9,15}">
+                            <p class="text-xs text-vintage-brown mt-1">Enter your M-Pesa registered number</p>
+                        </div>
+                        <button type="submit" class="w-full py-3 px-6 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                            Pay with M-Pesa (KSh {{ pro_price }})
+                        </button>
+                    </form>
+                    
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-vintage-dark/20"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-[#F5F2E9] text-vintage-brown font-serif italic">or</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Stripe Option -->
+                    <form method="POST" action="{% url 'upgrade_stripe' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full py-3 px-6 bg-vintage-dark text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-brown transition-colors">
+                            Pay with Card (KSh {{ pro_price }})
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+    function openPaymentModal() {
+        document.getElementById('paymentModal').classList.remove('hidden');
+    }
+    
+    function closePaymentModal() {
+        document.getElementById('paymentModal').classList.add('hidden');
+    }
+    
+    // Close modal on outside click
+    document.getElementById('paymentModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePaymentModal();
+        }
+    });
+    
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
+
+{% endblock %}
+
