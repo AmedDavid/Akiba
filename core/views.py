@@ -284,6 +284,12 @@ def goal_detail(request, goal_id):
 @login_required
 def goal_create(request):
     """Create new goal"""
+    # Check goal limit for free users
+    has_access, error_msg = check_feature_access(request.user, 'goals')
+    if not has_access:
+        messages.warning(request, error_msg)
+        return redirect('pricing')
+    
     if request.method == 'POST':
         form = GoalForm(request.POST)
         if form.is_valid():
@@ -532,6 +538,18 @@ def tribe_detail(request, tribe_id):
     
     if request.method == 'POST':
         if 'join' in request.POST:
+            # Check tribe join limit for free users
+            if tribe.is_private:
+                has_access, error_msg = check_feature_access(request.user, 'create_private_tribe')
+                if not has_access:
+                    messages.warning(request, error_msg)
+                    return redirect('pricing')
+            else:
+                has_access, error_msg = check_feature_access(request.user, 'tribes_join')
+                if not has_access:
+                    messages.warning(request, error_msg)
+                    return redirect('pricing')
+            
             tribe.members.add(request.user)
             messages.success(request, f'Joined {tribe.name}!')
             return redirect('tribe_detail', tribe_id=tribe_id)
@@ -571,7 +589,12 @@ def tribe_detail(request, tribe_id):
 
 @login_required
 def tribe_create(request):
-    """Create new tribe"""
+    """Create new tribe - Pro only"""
+    has_access, error_msg = check_feature_access(request.user, 'create_tribe')
+    if not has_access:
+        messages.warning(request, error_msg)
+        return redirect('pricing')
+    
     if request.method == 'POST':
         form = TribeForm(request.POST)
         if form.is_valid():
@@ -733,7 +756,12 @@ def mark_notification_read(request, notification_id):
 
 @login_required
 def budget_view(request):
-    """Budget planning page"""
+    """Budget planning page - Pro only"""
+    has_access, error_msg = check_feature_access(request.user, 'budget')
+    if not has_access:
+        messages.warning(request, error_msg)
+        return redirect('pricing')
+    
     today = timezone.now().date()
     current_month = today.replace(day=1)
     
@@ -767,11 +795,15 @@ def budget_view(request):
 @login_required
 def analytics_view(request):
     """Savings analytics and reports"""
+    # Limit free users to 3 months, Pro to 12 months
+    is_pro = is_pro_user(request.user)
+    months_limit = 12 if is_pro else 3
+    
     today = timezone.now().date()
     
-    # Get savings data for last 12 months
+    # Get savings data for last N months (based on tier)
     months_data = []
-    for i in range(11, -1, -1):
+    for i in range(months_limit - 1, -1, -1):
         month_start = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
         if month_start.month == 12:
             month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(days=1)

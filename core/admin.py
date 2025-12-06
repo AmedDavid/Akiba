@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     UserProfile, MpesaStatement, Goal, DailySaving, Tribe, TribePost,
     Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
-    Budget, RecurringSavingsPlan, GoalTemplate
+    Budget, RecurringSavingsPlan, GoalTemplate, Subscription, Payment
 )
 
 
@@ -102,3 +102,19 @@ class GoalTemplateAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'target_amount', 'suggested_deadline_months', 'is_featured']
     list_filter = ['category', 'is_featured', 'created_at']
     search_fields = ['name', 'description']
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'tier', 'status', 'payment_method', 'expiry_date', 'created_at']
+    list_filter = ['tier', 'status', 'payment_method', 'created_at']
+    search_fields = ['user__username', 'user__email']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['user', 'amount', 'method', 'status', 'transaction_id', 'created_at']
+    list_filter = ['method', 'status', 'created_at']
+    search_fields = ['user__username', 'transaction_id']
+    readonly_fields = ['created_at', 'updated_at']

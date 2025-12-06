@@ -35,5 +35,12 @@ urlpatterns = [
     path('calculator/', views.savings_calculator, name='calculator'),
     path('goal-templates/', views.goal_templates_view, name='goal_templates'),
     path('goal-templates/<int:template_id>/create/', views.create_goal_from_template, name='create_goal_from_template'),
+    # Payment & Subscription
+    path('pricing/', views.pricing_view, name='pricing'),
+    path('upgrade/mpesa/', views.upgrade_mpesa, name='upgrade_mpesa'),
+    path('upgrade/stripe/', views.upgrade_stripe, name='upgrade_stripe'),
+    path('payments/mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
+    path('payments/stripe/webhook/', views.stripe_webhook, name='stripe_webhook'),
+    path('payments/stripe/success/', views.stripe_success, name='stripe_success'),
 ]
 
