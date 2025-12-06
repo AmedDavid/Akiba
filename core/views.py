@@ -13,13 +13,19 @@ from decimal import Decimal
 from .models import (
     UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost,
     Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
-    Budget, RecurringSavingsPlan, GoalTemplate
+    Budget, RecurringSavingsPlan, GoalTemplate, Subscription, Payment
 )
 from .forms import (
     CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm,
     GoalForm, DailySavingForm, MpesaStatementForm, TribeForm, TribePostForm,
     BudgetForm, RecurringSavingsPlanForm
 )
+from .subscription_utils import is_pro_user, check_feature_access, get_feature_limit
+from .payments import (
+    initiate_mpesa_stk_push, create_stripe_checkout_session,
+    handle_mpesa_callback, handle_stripe_webhook, PRO_MONTHLY_PRICE
+)
+import json
 
 
 def landing(request):
@@ -922,3 +928,176 @@ def create_goal_from_template(request, template_id):
         'template': template,
         'suggested_deadline': timezone.now().date() + timedelta(days=template.suggested_deadline_months * 30),
     })
+
+
+# ==================== PAYMENT & SUBSCRIPTION VIEWS ====================
+
+@login_required
+def pricing_view(request):
+    """Pricing page"""
+    subscription = request.user.subscription if hasattr(request.user, 'subscription') else None
+    is_pro = is_pro_user(request.user) if subscription else False
+    
+    return render(request, 'core/pricing.html', {
+        'subscription': subscription,
+        'is_pro': is_pro,
+        'pro_price': PRO_MONTHLY_PRICE,
+    })
+
+
+@login_required
+def upgrade_mpesa(request):
+    """Initiate M-Pesa STK Push for subscription"""
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number', '').strip()
+        
+        if not phone_number:
+            messages.error(request, 'Please provide your M-Pesa phone number.')
+            return redirect('pricing')
+        
+        # Get or create subscription
+        subscription, created = Subscription.objects.get_or_create(
+            user=request.user,
+            defaults={'tier': 'free', 'status': 'active'}
+        )
+        
+        # Create pending payment
+        from django.conf import settings
+        callback_url = request.build_absolute_uri('/payments/mpesa/callback/')
+        account_reference = f"AKIBA-{request.user.id}-{timezone.now().timestamp()}"
+        
+        payment = Payment.objects.create(
+            user=request.user,
+            amount=PRO_MONTHLY_PRICE,
+            method='mpesa',
+            status='pending',
+            transaction_id=account_reference,
+            subscription=subscription,
+            metadata={
+                'phone_number': phone_number,
+                'checkout_request_id': account_reference,
+            }
+        )
+        
+        # Initiate STK Push
+        success, response = initiate_mpesa_stk_push(
+            phone_number=phone_number,
+            amount=PRO_MONTHLY_PRICE,
+            account_reference=account_reference,
+            callback_url=callback_url
+        )
+        
+        if success:
+            checkout_request_id = response.get('CheckoutRequestID', '')
+            payment.metadata['checkout_request_id'] = checkout_request_id
+            payment.transaction_id = checkout_request_id
+            payment.save()
+            
+            messages.info(request, 'M-Pesa STK Push initiated! Please check your phone and enter your M-Pesa PIN to complete the payment.')
+            return redirect('pricing')
+        else:
+            error_msg = response.get('errorMessage', 'Failed to initiate payment. Please try again.')
+            messages.error(request, f'Payment error: {error_msg}')
+            payment.delete()
+            return redirect('pricing')
+    
+    return redirect('pricing')
+
+
+@login_required
+def upgrade_stripe(request):
+    """Create Stripe checkout session"""
+    success_url = request.build_absolute_uri('/payments/stripe/success/')
+    cancel_url = request.build_absolute_uri('/pricing/')
+    
+    success, session_id = create_stripe_checkout_session(
+        user=request.user,
+        success_url=success_url,
+        cancel_url=cancel_url
+    )
+    
+    if success:
+        return redirect(f'https://checkout.stripe.com/pay/{session_id}')
+    else:
+        messages.error(request, f'Payment error: {session_id}')
+        return redirect('pricing')
+
+
+def mpesa_callback(request):
+    """Handle M-Pesa callback after payment"""
+    if request.method == 'POST':
+        try:
+            callback_data = json.loads(request.body)
+            success, payment = handle_mpesa_callback(callback_data)
+            
+            if success and payment:
+                # Send email confirmation
+                from django.core.mail import send_mail
+                send_mail(
+                    subject='Akiba Pro Subscription Activated!',
+                    message=f'Congratulations! Your Akiba Pro subscription has been activated. You now have access to all premium features.',
+                    from_email=None,  # Will use DEFAULT_FROM_EMAIL from settings
+                    recipient_list=[payment.user.email],
+                    fail_silently=True,
+                )
+                
+                return JsonResponse({'status': 'success'})
+        
+        except Exception as e:
+            print(f"M-Pesa callback error: {e}")
+    
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+def stripe_webhook(request):
+    """Handle Stripe webhook events"""
+    if request.method == 'POST':
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        
+        try:
+            from .payments import STRIPE_WEBHOOK_SECRET
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, STRIPE_WEBHOOK_SECRET
+            )
+            
+            handle_stripe_webhook(event)
+            return JsonResponse({'status': 'success'})
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        except stripe.error.SignatureVerificationError as e:
+            return JsonResponse({'error': 'Invalid signature'}, status=400)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@login_required
+def stripe_success(request):
+    """Handle successful Stripe payment"""
+    session_id = request.GET.get('session_id')
+    
+    if session_id:
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            payment = Payment.objects.filter(
+                transaction_id=session_id
+            ).first()
+            
+            if payment:
+                # Send email confirmation
+                from django.core.mail import send_mail
+                send_mail(
+                    subject='Akiba Pro Subscription Activated!',
+                    message=f'Congratulations! Your Akiba Pro subscription has been activated. You now have access to all premium features.',
+                    from_email=None,
+                    recipient_list=[payment.user.email],
+                    fail_silently=True,
+                )
+                
+                messages.success(request, 'Payment successful! Your Pro subscription is now active.')
+                return redirect('dashboard')
+        except Exception as e:
+            print(f"Stripe success error: {e}")
+    
+    messages.info(request, 'Payment processing. Your subscription will be activated shortly.')
+    return redirect('dashboard')

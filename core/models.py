@@ -446,3 +446,84 @@ class GoalTemplate(models.Model):
 
     class Meta:
         ordering = ['-is_featured', 'name']
+
+
+class Subscription(models.Model):
+    """User subscription model for freemium tier management"""
+    TIER_CHOICES = [
+        ('free', 'Free'),
+        ('pro', 'Pro'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('trial', 'Trial'),
+        ('cancelled', 'Cancelled'),
+        ('expired', 'Expired'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('mpesa', 'M-Pesa'),
+        ('stripe', 'Stripe'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='subscription')
+    tier = models.CharField(max_length=10, choices=TIER_CHOICES, default='free')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, blank=True, null=True)
+    expiry_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.tier} ({self.status})"
+    
+    def is_active(self):
+        """Check if subscription is currently active"""
+        if self.tier == 'free':
+            return True
+        if self.status != 'active':
+            return False
+        if self.expiry_date and timezone.now() > self.expiry_date:
+            self.status = 'expired'
+            self.save()
+            return False
+        return True
+    
+    def is_pro(self):
+        """Check if user has active Pro subscription"""
+        return self.tier == 'pro' and self.is_active()
+    
+    class Meta:
+        ordering = ['-created_at']
+
+
+class Payment(models.Model):
+    """Payment transaction records"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('mpesa', 'M-Pesa'),
+        ('stripe', 'Stripe'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
+    method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
+    transaction_id = models.CharField(max_length=255, unique=True, help_text="M-Pesa transaction ID or Stripe payment intent ID")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
+    metadata = models.JSONField(default=dict, blank=True, help_text="Additional payment data (receipt number, etc.)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} ({self.method}) - {self.status}"
+    
+    class Meta:
+        ordering = ['-created_at']

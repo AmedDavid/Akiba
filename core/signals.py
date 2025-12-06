@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import UserProfile, Goal, DailySaving, Notification
+from .models import UserProfile, Goal, DailySaving, Notification, Subscription
 from .achievements import check_and_award_achievement, check_all_achievements, create_goal_deadline_notification, create_streak_milestone_notification
 
 
@@ -10,6 +10,11 @@ from .achievements import check_and_award_achievement, check_all_achievements, c
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
+        # Create free subscription by default
+        Subscription.objects.get_or_create(
+            user=instance,
+            defaults={'tier': 'free', 'status': 'active'}
+        )
 
 
 @receiver(post_save, sender=User)
