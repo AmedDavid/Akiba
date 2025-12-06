@@ -156,7 +156,7 @@ def dashboard(request):
         'active_challenges': active_challenges,
         'unread_notifications': unread_notifications,
         'unread_count': unread_count,
-        'is_pro': is_pro,,
+        'is_pro': is_pro,
         'recent_savings': recent_savings,
         'total_saved': total_saved,
         'checked_in_today': checked_in_today,
