@@ -141,9 +141,13 @@ def dashboard(request):
     from .achievements import check_all_achievements
     check_all_achievements(request.user)
     
+    # Check subscription status
+    is_pro = is_pro_user(request.user)
+    
     context = {
         'profile': profile,
         'active_goals': active_goals,
+        'is_pro': is_pro,,
         'recent_savings': recent_savings,
         'total_saved': total_saved,
         'checked_in_today': checked_in_today,

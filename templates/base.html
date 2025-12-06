@@ -141,6 +141,13 @@
             
             <!-- Desktop User Actions -->
             <div class="hidden md:flex items-center gap-4 lg:gap-6">
+                {% if user.is_authenticated %}
+                    {% if not user.subscription.is_pro %}
+                        <a href="{% url 'pricing' %}" class="bg-vintage-gold hover:bg-vintage-gold/90 text-vintage-dark px-3 py-1.5 font-display uppercase tracking-widest text-xs transition-all shadow-[2px_2px_0px_0px_#2C2420] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_#2C2420] border border-vintage-dark">
+                            Upgrade
+                        </a>
+                    {% endif %}
+                {% endif %}
                 <a href="{% url 'notifications' %}" class="relative hover:text-vintage-red transition-colors text-vintage-dark" title="Notifications">
                     <i data-lucide="bell" class="w-5 h-5"></i>
                     {% if unread_count > 0 %}
