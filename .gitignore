@@ -41,9 +41,6 @@ Thumbs.db
 /staticfiles/
 /static_collected/
 
-# Documentation (allow .md files in docs/)
-docs/*
-!docs/*.md
-!docs/*.txt
-
+# Documentation (exclude from Git tracking)
+PROJECT_DOCUMENTATION.md
 docs/
