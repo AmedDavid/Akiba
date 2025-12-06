@@ -10,6 +10,8 @@ A production-ready Django application for tracking savings goals, analyzing M-Pe
 - **M-Pesa Analysis**: Upload PDF statements and get automatic spending insights
 - **Tribes (Communities)**: Join or create savings communities, share posts, and compete on leaderboards
 - **Leaderboards**: National and tribe-specific leaderboards for top savers and streak champions
+- **Freemium Model**: Free tier with core features, Pro tier (KSh 199/month) with unlimited access
+- **Payment Integration**: M-Pesa (Daraja API) and Stripe payment support
 - **Vintage Design**: Beautiful, heritage-inspired UI matching the template.html aesthetic
 
 ## Tech Stack
@@ -50,7 +52,27 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 5. Run Development Server
+### 5. Configure Payment Settings (Optional - for testing payments)
+
+Create a `.env` file in the project root (or set environment variables):
+
+```bash
+# M-Pesa Daraja API (Sandbox)
+MPESA_CONSUMER_KEY=your_consumer_key_here
+MPESA_CONSUMER_SECRET=your_consumer_secret_here
+MPESA_SHORTCODE=174379
+MPESA_PASSKEY=your_passkey_here
+MPESA_BASE_URL=https://sandbox.safaricom.co.ke
+
+# Stripe (Test keys)
+STRIPE_SECRET_KEY=sk_test_your_key_here
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+```
+
+**Note:** For development/testing, you can use sandbox/test credentials. The app will work without payment configuration, but payment features won't function.
+
+### 6. Run Development Server
 
 ```bash
 python manage.py runserver

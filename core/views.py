@@ -854,6 +854,8 @@ def analytics_view(request):
         'velocity': velocity,
         'total_goal_target': total_goal_target,
         'total_goal_current': total_goal_current,
+        'is_pro': is_pro,
+        'months_limit': months_limit,
     })
 
 
