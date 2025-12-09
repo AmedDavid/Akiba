@@ -12,7 +12,6 @@ A production-ready Django application for tracking savings goals, analyzing M-Pe
 - **Leaderboards**: National and tribe-specific leaderboards for top savers and streak champions
 - **Freemium Model**: Free tier with core features, Pro tier (KSh 199/month) with unlimited access
 - **Payment Integration**: M-Pesa (Daraja API) and Stripe payment support
-- **Vintage Design**: Beautiful, heritage-inspired UI matching the template.html aesthetic
 
 ## Tech Stack
 
@@ -158,7 +157,7 @@ Akiba/
 
 ## Design System
 
-The application follows the exact design system from `template.html`:
+The application has:
 - Vintage color palette (cream, dark brown, deep red, gold)
 - Playfair Display for headings, DM Sans for body text, Cinzel for display
 - Aged paper texture background
@@ -181,7 +180,7 @@ These directories are excluded from Git via `.gitignore`.
 ## Development Notes
 
 - The project uses SQLite by default (suitable for development)
-- All templates extend `base.html` which adapts the `template.html` design
+- All templates extend `base.html`
 - Forms use manual Bootstrap styling to match the vintage aesthetic
 - M-Pesa PDF parsing uses regex patterns (may need adjustment for different statement formats)
 - Confetti animation uses canvas-confetti library for goal achievements
