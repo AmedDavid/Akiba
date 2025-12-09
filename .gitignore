@@ -22,6 +22,7 @@ db.sqlite3-journal
 # Environment
 .env
 .env.local
+.github_token
 
 # IDE
 .vscode/
@@ -44,3 +45,9 @@ Thumbs.db
 # Documentation (exclude from Git tracking)
 PROJECT_DOCUMENTATION.md
 docs/
+
+# GitHub Issues Management (exclude from Git tracking)
+GITHUB_ISSUES_README.md
+create_github_issues.py
+manage_github_issues.py
+remove_emojis_from_issues.py
