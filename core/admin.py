@@ -1,16 +1,9 @@
 from django.contrib import admin
-from django.contrib.admin import AdminSite
 from .models import (
     UserProfile, MpesaStatement, Goal, DailySaving, Tribe, TribePost,
     Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
     Budget, RecurringSavingsPlan, GoalTemplate, Subscription, Payment
 )
-
-
-# Customize admin site
-admin.site.site_header = "Akiba Admin Dashboard"
-admin.site.site_title = "Akiba Admin"
-admin.site.index_title = "Welcome to Akiba Administration"
 
 
 @admin.register(UserProfile)

@@ -68,7 +68,7 @@ def admin_login(request):
     else:
         form = CustomAuthenticationForm()
     
-    return render(request, 'admin/login.html', {'form': form})
+    return render(request, 'custom_admin/login.html', {'form': form})
 
 
 @staff_required
@@ -168,7 +168,7 @@ def admin_dashboard(request):
         'recent_goals': recent_goals,
     }
     
-    return render(request, 'admin/dashboard.html', context)
+    return render(request, 'custom_admin/dashboard.html', context)
 
 
 @staff_required
@@ -209,7 +209,7 @@ def admin_users(request):
         'filter_type': filter_type,
     }
     
-    return render(request, 'admin/users.html', context)
+    return render(request, 'custom_admin/users.html', context)
 
 
 @staff_required
@@ -235,7 +235,7 @@ def admin_user_detail(request, user_id):
         'achievements': achievements,
     }
     
-    return render(request, 'admin/user_detail.html', context)
+    return render(request, 'custom_admin/user_detail.html', context)
 
 
 @staff_required
@@ -283,7 +283,7 @@ def admin_goals(request):
         'today': timezone.now().date(),
     }
     
-    return render(request, 'admin/goals.html', context)
+    return render(request, 'custom_admin/goals.html', context)
 
 
 @staff_required
@@ -320,7 +320,7 @@ def admin_payments(request):
         'filter_method': filter_method,
     }
     
-    return render(request, 'admin/payments.html', context)
+    return render(request, 'custom_admin/payments.html', context)
 
 
 @staff_required
@@ -358,7 +358,7 @@ def admin_subscriptions(request):
         'today': timezone.now().date(),
     }
     
-    return render(request, 'admin/subscriptions.html', context)
+    return render(request, 'custom_admin/subscriptions.html', context)
 
 
 @staff_required
@@ -392,7 +392,7 @@ def admin_tribes(request):
         'filter_type': filter_type,
     }
     
-    return render(request, 'admin/tribes.html', context)
+    return render(request, 'custom_admin/tribes.html', context)
 
 
 @staff_required
@@ -418,5 +418,5 @@ def admin_statements(request):
         'search_query': search_query,
     }
     
-    return render(request, 'admin/statements.html', context)
+    return render(request, 'custom_admin/statements.html', context)
 
