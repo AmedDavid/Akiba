@@ -44,6 +44,7 @@ urlpatterns = [
     path('payments/stripe/webhook/', views.stripe_webhook, name='stripe_webhook'),
     path('payments/stripe/success/', views.stripe_success, name='stripe_success'),
     # Admin Dashboard
+    path('admin/login/', admin_views.admin_login, name='admin_login'),
     path('admin/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('admin/users/', admin_views.admin_users, name='admin_users'),
     path('admin/users/<int:user_id>/', admin_views.admin_user_detail, name='admin_user_detail'),

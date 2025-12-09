@@ -43,6 +43,7 @@
 </head>
 <body class="bg-texture min-h-screen">
     <!-- Admin Header -->
+    {% if user.is_authenticated and user.is_staff %}
     <header class="bg-vintage-dark text-white shadow-lg">
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
@@ -60,8 +61,10 @@
             </div>
         </div>
     </header>
+    {% endif %}
 
     <!-- Admin Navigation -->
+    {% if user.is_authenticated and user.is_staff %}
     <nav class="bg-white border-b-2 border-vintage-dark/20 shadow-sm">
         <div class="container mx-auto px-6">
             <div class="flex items-center gap-1 overflow-x-auto hide-scrollbar">
@@ -92,6 +95,7 @@
             </div>
         </div>
     </nav>
+    {% endif %}
 
     <!-- Messages -->
     {% if messages %}

@@ -18,20 +18,66 @@ from .models import (
     Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
     Budget, RecurringSavingsPlan, GoalTemplate, Subscription, Payment
 )
+from .forms import CustomAuthenticationForm
 
 
 def staff_required(view_func):
     """Decorator to require staff status"""
-    decorated_view_func = login_required(user_passes_test(
-        lambda u: u.is_staff,
-        login_url='/login/'
-    )(view_func))
-    return decorated_view_func
+    from functools import wraps
+    from django.contrib.auth.decorators import login_required
+    from django.contrib.auth.views import redirect_to_login
+    from django.http import HttpResponseForbidden
+    
+    @wraps(view_func)
+    @login_required(login_url='/admin/login/')
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_staff:
+            return HttpResponseForbidden(
+                '<h1>403 Forbidden</h1><p>You do not have permission to access this page. Staff access required.</p><p><a href="/dashboard/">Return to Dashboard</a></p>'
+            )
+        
+        return view_func(request, *args, **kwargs)
+    
+    return wrapper
+
+
+def admin_login(request):
+    """Custom admin login page"""
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, 'You do not have permission to access the admin dashboard. Staff access required.')
+            return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = CustomAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            from django.contrib.auth import login
+            user = form.get_user()
+            login(request, user)
+            if user.is_staff:
+                messages.success(request, f'Welcome to Admin Dashboard, {user.username}!')
+                next_url = request.GET.get('next', '/admin/')
+                return redirect(next_url)
+            else:
+                messages.error(request, 'You do not have permission to access the admin dashboard.')
+                return redirect('dashboard')
+        else:
+            messages.error(request, 'Invalid username or password. Please try again.')
+    else:
+        form = CustomAuthenticationForm()
+    
+    return render(request, 'admin/login.html', {'form': form})
 
 
 @staff_required
 def admin_dashboard(request):
     """Main admin dashboard with statistics"""
+    # Double check - should be handled by decorator but just in case
+    if not request.user.is_staff:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
     # Calculate statistics
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
