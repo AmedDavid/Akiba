@@ -1,0 +1,81 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Tribes - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Tribes Management</h1>
+        <p class="text-vintage-brown">View and manage all tribes</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 border-2 border-vintage-dark/20 shadow-sm">
+        <form method="get" class="flex items-center gap-4 flex-wrap">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search tribes..." 
+                   class="flex-1 min-w-[200px] px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+            <select name="type" class="px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+                <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Types</option>
+                <option value="public" {% if filter_type == 'public' %}selected{% endif %}>Public</option>
+                <option value="private" {% if filter_type == 'private' %}selected{% endif %}>Private</option>
+            </select>
+            <button type="submit" class="px-6 py-2 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Tribes Table -->
+    <div class="bg-white border-2 border-vintage-dark/20 shadow-sm overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-vintage-dark text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Name</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Type</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Members</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Created By</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tribe in page_obj %}
+                <tr class="border-b border-vintage-dark/10 hover:bg-vintage-cream/50">
+                    <td class="px-6 py-4 font-semibold">{{ tribe.name }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs {% if tribe.is_private %}bg-vintage-red text-white{% else %}bg-vintage-olive text-white{% endif %}">
+                            {% if tribe.is_private %}Private{% else %}Public{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">{{ tribe.member_count }}</td>
+                    <td class="px-6 py-4">{{ tribe.created_by.username }}</td>
+                    <td class="px-6 py-4 text-sm text-vintage-brown">{{ tribe.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-vintage-brown">No tribes found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Previous</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-vintage-brown">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

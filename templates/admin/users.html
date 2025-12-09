@@ -1,0 +1,92 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Users - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Users Management</h1>
+            <p class="text-vintage-brown">Manage all platform users</p>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-white p-4 border-2 border-vintage-dark/20 shadow-sm">
+        <form method="get" class="flex items-center gap-4 flex-wrap">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search users..." 
+                   class="flex-1 min-w-[200px] px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+            <select name="filter" class="px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+                <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Users</option>
+                <option value="active" {% if filter_type == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if filter_type == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="staff" {% if filter_type == 'staff' %}selected{% endif %}>Staff</option>
+                <option value="pro" {% if filter_type == 'pro' %}selected{% endif %}>Pro Users</option>
+            </select>
+            <button type="submit" class="px-6 py-2 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white border-2 border-vintage-dark/20 shadow-sm overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-vintage-dark text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Username</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Email</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Status</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Joined</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in page_obj %}
+                <tr class="border-b border-vintage-dark/10 hover:bg-vintage-cream/50">
+                    <td class="px-6 py-4">
+                        <div class="font-semibold">{{ user.username }}</div>
+                        {% if user.is_staff %}
+                        <span class="text-xs text-vintage-red">Staff</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-vintage-brown">{{ user.email }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs {% if user.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-vintage-brown">{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4">
+                        <a href="{% url 'admin_user_detail' user.id %}" class="text-vintage-red hover:underline text-sm">View Details</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-vintage-brown">No users found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Previous</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-vintage-brown">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

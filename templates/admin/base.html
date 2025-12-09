@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - Akiba{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,600&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-serif { font-family: 'Playfair Display', serif; }
+        .font-display { font-family: 'Cinzel', serif; }
+        .bg-texture {
+            background-color: #F5F2E9;
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(120, 34, 33, .03) 25%, rgba(120, 34, 33, .03) 26%, transparent 27%, transparent 74%, rgba(120, 34, 33, .03) 75%, rgba(120, 34, 33, .03) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(120, 34, 33, .03) 25%, rgba(120, 34, 33, .03) 26%, transparent 27%, transparent 74%, rgba(120, 34, 33, .03) 75%, rgba(120, 34, 33, .03) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vintage: {
+                            cream: '#F5F2E9',
+                            dark: '#2C2420',
+                            brown: '#5D4037',
+                            red: '#782221',
+                            redlight: '#9B2C2C',
+                            olive: '#556B2F',
+                            gold: '#C5A059'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-texture min-h-screen">
+    <!-- Admin Header -->
+    <header class="bg-vintage-dark text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-8 h-8"></i>
+                        <span class="font-display text-xl uppercase tracking-widest">Admin Dashboard</span>
+                    </a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-vintage-cream/80">{{ request.user.username }}</span>
+                    <a href="{% url 'dashboard' %}" class="text-sm hover:text-vintage-gold transition-colors">Back to Site</a>
+                    <a href="{% url 'logout' %}" class="text-sm hover:text-vintage-gold transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Navigation -->
+    <nav class="bg-white border-b-2 border-vintage-dark/20 shadow-sm">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center gap-1 overflow-x-auto hide-scrollbar">
+                <a href="{% url 'admin_dashboard' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if request.resolver_match.url_name == 'admin_dashboard' %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Dashboard
+                </a>
+                <a href="{% url 'admin_users' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if 'admin_users' in request.resolver_match.url_name %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Users
+                </a>
+                <a href="{% url 'admin_goals' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if 'admin_goals' in request.resolver_match.url_name %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Goals
+                </a>
+                <a href="{% url 'admin_payments' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if 'admin_payments' in request.resolver_match.url_name %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Payments
+                </a>
+                <a href="{% url 'admin_subscriptions' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if 'admin_subscriptions' in request.resolver_match.url_name %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Subscriptions
+                </a>
+                <a href="{% url 'admin_tribes' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if 'admin_tribes' in request.resolver_match.url_name %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Tribes
+                </a>
+                <a href="{% url 'admin_statements' %}" class="px-4 py-3 text-sm font-display uppercase tracking-widest {% if 'admin_statements' in request.resolver_match.url_name %}text-vintage-red border-b-2 border-vintage-red{% else %}text-vintage-dark hover:text-vintage-red{% endif %} transition-colors">
+                    Statements
+                </a>
+                <a href="/django-admin/" target="_blank" class="px-4 py-3 text-sm font-display uppercase tracking-widest text-vintage-brown hover:text-vintage-red transition-colors">
+                    Django Admin
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mx-auto px-6 mt-4">
+        {% for message in messages %}
+        <div class="bg-{% if message.tags == 'error' %}red{% elif message.tags == 'warning' %}yellow{% else %}green{% endif %}-100 border border-{% if message.tags == 'error' %}red{% elif message.tags == 'warning' %}yellow{% else %}green{% endif %}-400 text-{% if message.tags == 'error' %}red{% elif message.tags == 'warning' %}yellow{% else %}green{% endif %}-700 px-4 py-3 rounded mb-4">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
+

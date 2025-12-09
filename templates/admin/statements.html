@@ -1,0 +1,72 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Statements - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">M-Pesa Statements</h1>
+        <p class="text-vintage-brown">View all uploaded M-Pesa statements</p>
+    </div>
+
+    <!-- Search -->
+    <div class="bg-white p-4 border-2 border-vintage-dark/20 shadow-sm">
+        <form method="get" class="flex items-center gap-4">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by user..." 
+                   class="flex-1 px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+            <button type="submit" class="px-6 py-2 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Statements Table -->
+    <div class="bg-white border-2 border-vintage-dark/20 shadow-sm overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-vintage-dark text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">User</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Period (Months)</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Incoming</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Outgoing</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Uploaded</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for statement in page_obj %}
+                <tr class="border-b border-vintage-dark/10 hover:bg-vintage-cream/50">
+                    <td class="px-6 py-4">{{ statement.user.username }}</td>
+                    <td class="px-6 py-4">{{ statement.period_months }}</td>
+                    <td class="px-6 py-4 font-semibold text-vintage-olive">KSh {{ statement.total_incoming|floatformat:0 }}</td>
+                    <td class="px-6 py-4 font-semibold text-vintage-red">KSh {{ statement.total_outgoing|floatformat:0 }}</td>
+                    <td class="px-6 py-4 text-sm text-vintage-brown">{{ statement.uploaded_at|date:"M d, Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-vintage-brown">No statements found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Previous</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-vintage-brown">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

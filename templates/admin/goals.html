@@ -1,0 +1,96 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Goals - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Goals Management</h1>
+        <p class="text-vintage-brown">View and manage all user goals</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 border-2 border-vintage-dark/20 shadow-sm">
+        <form method="get" class="flex items-center gap-4 flex-wrap">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search goals..." 
+                   class="flex-1 min-w-[200px] px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+            <select name="filter" class="px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+                <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Goals</option>
+                <option value="active" {% if filter_type == 'active' %}selected{% endif %}>Active</option>
+                <option value="achieved" {% if filter_type == 'achieved' %}selected{% endif %}>Achieved</option>
+                <option value="overdue" {% if filter_type == 'overdue' %}selected{% endif %}>Overdue</option>
+            </select>
+            <button type="submit" class="px-6 py-2 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Goals Table -->
+    <div class="bg-white border-2 border-vintage-dark/20 shadow-sm overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-vintage-dark text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">User</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Title</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Progress</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Category</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Deadline</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for goal in page_obj %}
+                <tr class="border-b border-vintage-dark/10 hover:bg-vintage-cream/50">
+                    <td class="px-6 py-4">{{ goal.user.username }}</td>
+                    <td class="px-6 py-4 font-semibold">{{ goal.title }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-vintage-dark/10 h-2 rounded-full overflow-hidden">
+                                <div class="bg-vintage-red h-full" style="width: {{ goal.progress_percentage }}%"></div>
+                            </div>
+                            <span class="text-sm text-vintage-brown">{{ goal.progress_percentage|floatformat:0 }}%</span>
+                        </div>
+                        <div class="text-xs text-vintage-brown mt-1">
+                            KSh {{ goal.current_amount|floatformat:0 }} / KSh {{ goal.target_amount|floatformat:0 }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm">{{ goal.get_category_display }}</td>
+                    <td class="px-6 py-4 text-sm {% if not goal.achieved and goal.deadline < today %}text-red-600{% else %}text-vintage-brown{% endif %}">
+                        {{ goal.deadline|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs {% if goal.achieved %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {% if goal.achieved %}Achieved{% else %}Active{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-vintage-brown">No goals found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Previous</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-vintage-brown">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,175 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Admin Dashboard - Akiba{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Admin Dashboard</h1>
+        <p class="text-vintage-brown">Overview of your Akiba platform</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Users Stats -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm hover:shadow-[6px_6px_0px_0px_#2C2420] transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown">Total Users</h3>
+                <i data-lucide="users" class="w-6 h-6 text-vintage-red"></i>
+            </div>
+            <p class="text-3xl font-serif text-vintage-dark font-bold">{{ total_users }}</p>
+            <div class="mt-4 flex items-center gap-4 text-sm">
+                <span class="text-vintage-olive">Active: {{ active_users }}</span>
+                <span class="text-vintage-red">Pro: {{ pro_users }}</span>
+            </div>
+        </div>
+
+        <!-- Goals Stats -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm hover:shadow-[6px_6px_0px_0px_#2C2420] transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown">Goals</h3>
+                <i data-lucide="target" class="w-6 h-6 text-vintage-red"></i>
+            </div>
+            <p class="text-3xl font-serif text-vintage-dark font-bold">{{ total_goals }}</p>
+            <div class="mt-4 flex items-center gap-4 text-sm">
+                <span class="text-vintage-olive">Active: {{ active_goals }}</span>
+                <span class="text-vintage-gold">Achieved: {{ achieved_goals }}</span>
+            </div>
+        </div>
+
+        <!-- Revenue Stats -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm hover:shadow-[6px_6px_0px_0px_#2C2420] transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown">Total Revenue</h3>
+                <i data-lucide="dollar-sign" class="w-6 h-6 text-vintage-red"></i>
+            </div>
+            <p class="text-3xl font-serif text-vintage-dark font-bold">KSh {{ total_revenue|floatformat:0 }}</p>
+            <div class="mt-4 text-sm text-vintage-brown">
+                This month: KSh {{ revenue_this_month|floatformat:0 }}
+            </div>
+        </div>
+
+        <!-- Payments Stats -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm hover:shadow-[6px_6px_0px_0px_#2C2420] transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown">Payments</h3>
+                <i data-lucide="credit-card" class="w-6 h-6 text-vintage-red"></i>
+            </div>
+            <p class="text-3xl font-serif text-vintage-dark font-bold">{{ total_payments }}</p>
+            <div class="mt-4 flex items-center gap-4 text-sm">
+                <span class="text-vintage-olive">Completed: {{ completed_payments }}</span>
+                <span class="text-vintage-brown">Pending: {{ pending_payments }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Subscriptions -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Subscriptions</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Free</span>
+                    <span class="font-bold">{{ free_subscriptions }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Pro (Active)</span>
+                    <span class="font-bold text-vintage-red">{{ pro_subscriptions }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Expired</span>
+                    <span class="font-bold text-vintage-brown">{{ expired_subscriptions }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Savings -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Savings</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Total Saved</span>
+                    <span class="font-bold">KSh {{ total_saved_profiles|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Today</span>
+                    <span class="font-bold text-vintage-olive">KSh {{ savings_today|floatformat:0 }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>This Week</span>
+                    <span class="font-bold text-vintage-olive">KSh {{ savings_this_week|floatformat:0 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tribes -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Tribes</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Total</span>
+                    <span class="font-bold">{{ total_tribes }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Public</span>
+                    <span class="font-bold text-vintage-olive">{{ public_tribes }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Private</span>
+                    <span class="font-bold text-vintage-brown">{{ private_tribes }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Users -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-serif text-vintage-dark font-bold">Recent Users</h3>
+                <a href="{% url 'admin_users' %}" class="text-sm text-vintage-red hover:underline">View All</a>
+            </div>
+            <div class="space-y-3">
+                {% for user in recent_users %}
+                <div class="flex items-center justify-between py-2 border-b border-vintage-dark/10">
+                    <div>
+                        <p class="font-semibold">{{ user.username }}</p>
+                        <p class="text-sm text-vintage-brown">{{ user.email }}</p>
+                    </div>
+                    <a href="{% url 'admin_user_detail' user.id %}" class="text-vintage-red hover:underline text-sm">View</a>
+                </div>
+                {% empty %}
+                <p class="text-vintage-brown text-sm">No recent users</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-serif text-vintage-dark font-bold">Recent Payments</h3>
+                <a href="{% url 'admin_payments' %}" class="text-sm text-vintage-red hover:underline">View All</a>
+            </div>
+            <div class="space-y-3">
+                {% for payment in recent_payments %}
+                <div class="flex items-center justify-between py-2 border-b border-vintage-dark/10">
+                    <div>
+                        <p class="font-semibold">{{ payment.user.username }}</p>
+                        <p class="text-sm text-vintage-brown">KSh {{ payment.amount }} - {{ payment.get_method_display }}</p>
+                    </div>
+                    <span class="text-sm px-2 py-1 rounded {% if payment.status == 'completed' %}bg-green-100 text-green-700{% elif payment.status == 'pending' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ payment.get_status_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-vintage-brown text-sm">No recent payments</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

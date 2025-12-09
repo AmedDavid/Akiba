@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from . import admin_views
 
 urlpatterns = [
     path('', views.landing, name='landing'),
@@ -42,5 +43,15 @@ urlpatterns = [
     path('payments/mpesa/callback/', views.mpesa_callback, name='mpesa_callback'),
     path('payments/stripe/webhook/', views.stripe_webhook, name='stripe_webhook'),
     path('payments/stripe/success/', views.stripe_success, name='stripe_success'),
+    # Admin Dashboard
+    path('admin/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('admin/users/', admin_views.admin_users, name='admin_users'),
+    path('admin/users/<int:user_id>/', admin_views.admin_user_detail, name='admin_user_detail'),
+    path('admin/users/<int:user_id>/toggle-active/', admin_views.admin_user_toggle_active, name='admin_user_toggle_active'),
+    path('admin/goals/', admin_views.admin_goals, name='admin_goals'),
+    path('admin/payments/', admin_views.admin_payments, name='admin_payments'),
+    path('admin/subscriptions/', admin_views.admin_subscriptions, name='admin_subscriptions'),
+    path('admin/tribes/', admin_views.admin_tribes, name='admin_tribes'),
+    path('admin/statements/', admin_views.admin_statements, name='admin_statements'),
 ]
 

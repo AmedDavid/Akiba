@@ -1,0 +1,95 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Subscriptions - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Subscriptions Management</h1>
+        <p class="text-vintage-brown">View and manage user subscriptions</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 border-2 border-vintage-dark/20 shadow-sm">
+        <form method="get" class="flex items-center gap-4 flex-wrap">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by user..." 
+                   class="flex-1 min-w-[200px] px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+            <select name="tier" class="px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+                <option value="all" {% if filter_tier == 'all' %}selected{% endif %}>All Tiers</option>
+                <option value="free" {% if filter_tier == 'free' %}selected{% endif %}>Free</option>
+                <option value="pro" {% if filter_tier == 'pro' %}selected{% endif %}>Pro</option>
+            </select>
+            <select name="status" class="px-4 py-2 border border-vintage-dark/20 focus:outline-none focus:border-vintage-red">
+                <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All Status</option>
+                <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Active</option>
+                <option value="expired" {% if filter_status == 'expired' %}selected{% endif %}>Expired</option>
+                <option value="cancelled" {% if filter_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+            <button type="submit" class="px-6 py-2 bg-vintage-red text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-redlight transition-colors">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Subscriptions Table -->
+    <div class="bg-white border-2 border-vintage-dark/20 shadow-sm overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-vintage-dark text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">User</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Tier</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Status</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Payment Method</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Expiry Date</th>
+                    <th class="px-6 py-3 text-left text-sm font-display uppercase tracking-widest">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subscription in page_obj %}
+                <tr class="border-b border-vintage-dark/10 hover:bg-vintage-cream/50">
+                    <td class="px-6 py-4">{{ subscription.user.username }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs {% if subscription.tier == 'pro' %}bg-vintage-red text-white{% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ subscription.get_tier_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs {% if subscription.status == 'active' %}bg-green-100 text-green-700{% elif subscription.status == 'expired' %}bg-red-100 text-red-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {{ subscription.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm">{{ subscription.get_payment_method_display|default:"N/A" }}</td>
+                    <td class="px-6 py-4 text-sm {% if subscription.expiry_date and subscription.expiry_date.date < today %}text-red-600{% else %}text-vintage-brown{% endif %}">
+                        {{ subscription.expiry_date|date:"M d, Y"|default:"N/A" }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-vintage-brown">{{ subscription.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-vintage-brown">No subscriptions found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_tier != 'all' %}&tier={{ filter_tier }}{% endif %}{% if filter_status != 'all' %}&status={{ filter_status }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Previous</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-vintage-brown">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if filter_tier != 'all' %}&tier={{ filter_tier }}{% endif %}{% if filter_status != 'all' %}&status={{ filter_status }}{% endif %}" 
+           class="px-4 py-2 border border-vintage-dark/20 hover:bg-vintage-red hover:text-white transition-colors">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
