@@ -7,7 +7,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+import csv
+import json
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
@@ -133,6 +135,70 @@ def admin_dashboard(request):
     recent_payments = Payment.objects.filter(status='completed').order_by('-created_at')[:5]
     recent_goals = Goal.objects.order_by('-created_at')[:5]
     
+    # User growth data (last 30 days)
+    user_growth_data = []
+    for i in range(30, -1, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        count = User.objects.filter(date_joined__date__lte=date).count()
+        user_growth_data.append({'date': date.strftime('%Y-%m-%d'), 'count': count})
+    
+    # Revenue trend (last 7 days)
+    revenue_trend = []
+    for i in range(6, -1, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        daily_revenue = Payment.objects.filter(
+            status='completed',
+            created_at__date=date
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        revenue_trend.append({'date': date.strftime('%m/%d'), 'amount': float(daily_revenue)})
+    
+    # Savings trend (last 7 days)
+    savings_trend = []
+    for i in range(6, -1, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        daily_savings = DailySaving.objects.filter(date=date).aggregate(Sum('amount'))['amount__sum'] or 0
+        savings_trend.append({'date': date.strftime('%m/%d'), 'amount': float(daily_savings)})
+    
+    # Payment method breakdown
+    mpesa_payments = Payment.objects.filter(method='mpesa', status='completed').count()
+    stripe_payments = Payment.objects.filter(method='stripe', status='completed').count()
+    mpesa_revenue = Payment.objects.filter(method='mpesa', status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+    stripe_revenue = Payment.objects.filter(method='stripe', status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # Top savers
+    top_savers = UserProfile.objects.order_by('-total_saved')[:5]
+    
+    # Top tribes by members
+    top_tribes = Tribe.objects.annotate(member_count=Count('members')).order_by('-member_count')[:5]
+    
+    # Active challenges
+    active_challenges = SavingsChallenge.objects.filter(is_active=True).count()
+    completed_challenges = SavingsChallenge.objects.filter(is_active=False).count()
+    
+    # Achievements statistics
+    total_achievements = Achievement.objects.count()
+    total_user_achievements = UserAchievement.objects.count()
+    unique_users_with_achievements = UserAchievement.objects.values('user').distinct().count()
+    
+    # Notifications statistics
+    total_notifications = Notification.objects.count()
+    unread_notifications = Notification.objects.filter(is_read=False).count()
+    
+    # Goals by category
+    goals_by_category = {}
+    for category_code, category_name in Goal.CATEGORY_CHOICES:
+        count = Goal.objects.filter(category=category_code).count()
+        if count > 0:
+            goals_by_category[category_name] = count
+    
+    # Failed payments
+    failed_payments = Payment.objects.filter(status='failed').count()
+    
+    # Average goal progress
+    avg_goal_progress = 0
+    if total_goals > 0:
+        avg_goal_progress = (total_current_amount / total_target_amount * 100) if total_target_amount > 0 else 0
+    
     context = {
         'total_users': total_users,
         'active_users': active_users,
@@ -144,6 +210,7 @@ def admin_dashboard(request):
         'achieved_goals': achieved_goals,
         'total_target_amount': total_target_amount,
         'total_current_amount': total_current_amount,
+        'avg_goal_progress': avg_goal_progress,
         'total_savings': total_savings,
         'total_saved_profiles': total_saved_profiles,
         'savings_today': savings_today,
@@ -151,6 +218,7 @@ def admin_dashboard(request):
         'total_payments': total_payments,
         'completed_payments': completed_payments,
         'pending_payments': pending_payments,
+        'failed_payments': failed_payments,
         'total_revenue': total_revenue,
         'revenue_today': revenue_today,
         'revenue_this_month': revenue_this_month,
@@ -166,6 +234,23 @@ def admin_dashboard(request):
         'recent_users': recent_users,
         'recent_payments': recent_payments,
         'recent_goals': recent_goals,
+        'user_growth_data': json.dumps(user_growth_data),
+        'revenue_trend': json.dumps(revenue_trend),
+        'savings_trend': json.dumps(savings_trend),
+        'mpesa_payments': mpesa_payments,
+        'stripe_payments': stripe_payments,
+        'mpesa_revenue': mpesa_revenue,
+        'stripe_revenue': stripe_revenue,
+        'top_savers': top_savers,
+        'top_tribes': top_tribes,
+        'active_challenges': active_challenges,
+        'completed_challenges': completed_challenges,
+        'total_achievements': total_achievements,
+        'total_user_achievements': total_user_achievements,
+        'unique_users_with_achievements': unique_users_with_achievements,
+        'total_notifications': total_notifications,
+        'unread_notifications': unread_notifications,
+        'goals_by_category': goals_by_category,
     }
     
     return render(request, 'custom_admin/dashboard.html', context)
@@ -419,4 +504,70 @@ def admin_statements(request):
     }
     
     return render(request, 'custom_admin/statements.html', context)
+
+
+@staff_required
+def admin_export_data(request):
+    """Export admin data to CSV"""
+    export_type = request.GET.get('type', 'users')
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="akiba_{export_type}_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    
+    if export_type == 'users':
+        writer.writerow(['Username', 'Email', 'Date Joined', 'Is Active', 'Is Staff', 'Total Saved', 'Current Streak'])
+        for user in User.objects.all():
+            profile = getattr(user, 'userprofile', None)
+            writer.writerow([
+                user.username,
+                user.email,
+                user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
+                user.is_active,
+                user.is_staff,
+                profile.total_saved if profile else 0,
+                profile.current_streak if profile else 0,
+            ])
+    
+    elif export_type == 'payments':
+        writer.writerow(['User', 'Amount', 'Method', 'Status', 'Transaction ID', 'Created At'])
+        for payment in Payment.objects.all().order_by('-created_at'):
+            writer.writerow([
+                payment.user.username,
+                payment.amount,
+                payment.method,
+                payment.status,
+                payment.transaction_id,
+                payment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            ])
+    
+    elif export_type == 'goals':
+        writer.writerow(['User', 'Title', 'Category', 'Target Amount', 'Current Amount', 'Progress %', 'Achieved', 'Created At'])
+        for goal in Goal.objects.all().order_by('-created_at'):
+            progress = (goal.current_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0
+            writer.writerow([
+                goal.user.username,
+                goal.title,
+                goal.get_category_display(),
+                goal.target_amount,
+                goal.current_amount,
+                f"{progress:.2f}%",
+                goal.achieved,
+                goal.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            ])
+    
+    elif export_type == 'subscriptions':
+        writer.writerow(['User', 'Tier', 'Status', 'Payment Method', 'Expiry Date', 'Created At'])
+        for subscription in Subscription.objects.all().order_by('-created_at'):
+            writer.writerow([
+                subscription.user.username,
+                subscription.tier,
+                subscription.status,
+                subscription.payment_method or 'N/A',
+                subscription.expiry_date.strftime('%Y-%m-%d') if subscription.expiry_date else 'N/A',
+                subscription.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            ])
+    
+    return response
 

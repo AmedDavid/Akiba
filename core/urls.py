@@ -54,5 +54,6 @@ urlpatterns = [
     path('admin/subscriptions/', admin_views.admin_subscriptions, name='admin_subscriptions'),
     path('admin/tribes/', admin_views.admin_tribes, name='admin_tribes'),
     path('admin/statements/', admin_views.admin_statements, name='admin_statements'),
+    path('admin/export/', admin_views.admin_export_data, name='admin_export_data'),
 ]
 

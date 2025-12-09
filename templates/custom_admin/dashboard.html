@@ -5,9 +5,30 @@
 {% block content %}
 <div class="space-y-8">
     <!-- Page Header -->
-    <div>
-        <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Admin Dashboard</h1>
-        <p class="text-vintage-brown">Overview of your Akiba platform</p>
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-serif text-vintage-dark font-bold mb-2">Admin Dashboard</h1>
+            <p class="text-vintage-brown">Overview of your Akiba platform</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="relative group">
+                <button class="px-4 py-2 bg-vintage-olive text-white font-display uppercase tracking-widest text-xs hover:bg-vintage-olive/90 transition-colors flex items-center">
+                    <i data-lucide="download" class="w-4 h-4 inline mr-2"></i>
+                    Export Data
+                    <i data-lucide="chevron-down" class="w-4 h-4 inline ml-2"></i>
+                </button>
+                <div class="absolute right-0 mt-2 w-48 bg-white border-2 border-vintage-dark/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    <a href="{% url 'admin_export_data' %}?type=users" class="block px-4 py-2 text-sm text-vintage-dark hover:bg-vintage-cream">Export Users</a>
+                    <a href="{% url 'admin_export_data' %}?type=payments" class="block px-4 py-2 text-sm text-vintage-dark hover:bg-vintage-cream">Export Payments</a>
+                    <a href="{% url 'admin_export_data' %}?type=goals" class="block px-4 py-2 text-sm text-vintage-dark hover:bg-vintage-cream">Export Goals</a>
+                    <a href="{% url 'admin_export_data' %}?type=subscriptions" class="block px-4 py-2 text-sm text-vintage-dark hover:bg-vintage-cream">Export Subscriptions</a>
+                </div>
+            </div>
+            <button onclick="window.location.reload()" class="px-4 py-2 bg-vintage-brown text-white font-display uppercase tracking-widest text-xs hover:bg-vintage-brown/90 transition-colors">
+                <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                Refresh
+            </button>
+        </div>
     </div>
 
     <!-- Statistics Cards -->
@@ -170,6 +191,239 @@
             </div>
         </div>
     </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <!-- Revenue Trend Chart -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-lg font-serif text-vintage-dark font-bold mb-4">Revenue Trend (Last 7 Days)</h3>
+            <canvas id="revenueChart" height="100"></canvas>
+        </div>
+
+        <!-- Savings Trend Chart -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-lg font-serif text-vintage-dark font-bold mb-4">Savings Trend (Last 7 Days)</h3>
+            <canvas id="savingsChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- Additional Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        <!-- Payment Methods -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Payment Methods</h3>
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm">M-Pesa</span>
+                        <span class="text-sm font-bold">{{ mpesa_payments }} payments</span>
+                    </div>
+                    <div class="text-xs text-vintage-brown">KSh {{ mpesa_revenue|floatformat:0 }}</div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm">Stripe</span>
+                        <span class="text-sm font-bold">{{ stripe_payments }} payments</span>
+                    </div>
+                    <div class="text-xs text-vintage-brown">KSh {{ stripe_revenue|floatformat:0 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challenges -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Challenges</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Active</span>
+                    <span class="font-bold text-vintage-olive">{{ active_challenges }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Completed</span>
+                    <span class="font-bold text-vintage-gold">{{ completed_challenges }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Achievements</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Total Earned</span>
+                    <span class="font-bold">{{ total_user_achievements }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Users with Badges</span>
+                    <span class="font-bold text-vintage-olive">{{ unique_users_with_achievements }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <h3 class="text-sm font-display uppercase tracking-widest text-vintage-brown mb-4">Notifications</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Total</span>
+                    <span class="font-bold">{{ total_notifications }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Unread</span>
+                    <span class="font-bold text-vintage-red">{{ unread_notifications }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <!-- Top Savers -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-serif text-vintage-dark font-bold">Top Savers</h3>
+            </div>
+            <div class="space-y-3">
+                {% for profile in top_savers %}
+                <div class="flex items-center justify-between py-2 border-b border-vintage-dark/10">
+                    <div>
+                        <p class="font-semibold">{{ profile.user.username }}</p>
+                        <p class="text-sm text-vintage-brown">Streak: {{ profile.current_streak }} days</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-vintage-olive">KSh {{ profile.total_saved|floatformat:0 }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-vintage-brown text-sm">No savers yet</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Top Tribes -->
+        <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-serif text-vintage-dark font-bold">Top Tribes</h3>
+            </div>
+            <div class="space-y-3">
+                {% for tribe in top_tribes %}
+                <div class="flex items-center justify-between py-2 border-b border-vintage-dark/10">
+                    <div>
+                        <p class="font-semibold">{{ tribe.name }}</p>
+                        <p class="text-sm text-vintage-brown">{% if tribe.is_private %}Private{% else %}Public{% endif %}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-vintage-olive">{{ tribe.member_count }} members</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-vintage-brown text-sm">No tribes yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals by Category -->
+    {% if goals_by_category %}
+    <div class="bg-white p-6 border-2 border-vintage-dark/20 shadow-sm mt-8">
+        <h3 class="text-lg font-serif text-vintage-dark font-bold mb-4">Goals by Category</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {% for category, count in goals_by_category.items %}
+            <div class="text-center p-3 border border-vintage-dark/20">
+                <p class="text-2xl font-bold text-vintage-red">{{ count }}</p>
+                <p class="text-sm text-vintage-brown mt-1">{{ category }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Revenue Trend Chart
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        const revenueData = JSON.parse('{{ revenue_trend|escapejs }}');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueData.map(d => d.date),
+                datasets: [{
+                    label: 'Revenue (KSh)',
+                    data: revenueData.map(d => d.amount),
+                    borderColor: '#782221',
+                    backgroundColor: 'rgba(120, 34, 33, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'KSh ' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Savings Trend Chart
+    const savingsCtx = document.getElementById('savingsChart');
+    if (savingsCtx) {
+        const savingsData = JSON.parse('{{ savings_trend|escapejs }}');
+        new Chart(savingsCtx, {
+            type: 'bar',
+            data: {
+                labels: savingsData.map(d => d.date),
+                datasets: [{
+                    label: 'Savings (KSh)',
+                    data: savingsData.map(d => d.amount),
+                    backgroundColor: '#556B2F',
+                    borderColor: '#556B2F',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'KSh ' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
 {% endblock %}
 
