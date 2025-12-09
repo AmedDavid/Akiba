@@ -983,11 +983,17 @@ def pricing_view(request):
     subscription = request.user.subscription if hasattr(request.user, 'subscription') else None
     is_pro = is_pro_user(request.user) if subscription else False
     
-    return render(request, 'core/pricing.html', {
+    response = render(request, 'core/pricing.html', {
         'subscription': subscription,
         'is_pro': is_pro,
         'pro_price': PRO_MONTHLY_PRICE,
     })
+    
+    # Clear payment_pending cookie if user is now Pro
+    if is_pro:
+        response.delete_cookie('payment_pending')
+    
+    return response
 
 
 @login_required
@@ -1058,11 +1064,11 @@ def upgrade_mpesa(request):
             payment.metadata['checkout_request_id'] = checkout_request_id
             payment.transaction_id = checkout_request_id
             payment.save()
-            print(f"Debug: Payment {payment.id} saved with checkout_request_id: {checkout_request_id}")
-            print(f"Debug: Payment metadata after save: {payment.metadata}")
-            
-            messages.info(request, 'M-Pesa STK Push initiated! Please check your phone and enter your M-Pesa PIN to complete the payment.')
-            return redirect('pricing')
+            messages.info(request, 'M-Pesa STK Push initiated! Please check your phone and enter your M-Pesa PIN to complete the payment. The page will refresh automatically once payment is confirmed.')
+            response = redirect('pricing')
+            # Add a flag to trigger auto-refresh after payment
+            response.set_cookie('payment_pending', 'true', max_age=300)  # 5 minutes
+            return response
         else:
             error_msg = response.get('errorMessage', 'Failed to initiate payment. Please try again.')
             messages.error(request, f'Payment error: {error_msg}')
@@ -1097,11 +1103,9 @@ def mpesa_callback(request):
     if request.method == 'POST':
         try:
             callback_data = json.loads(request.body)
-            print(f"Debug: M-Pesa callback received: {callback_data}")
             success, payment = handle_mpesa_callback(callback_data)
             
             if success and payment:
-                print(f"Debug: Payment successful! Payment ID: {payment.id}")
                 # Send email confirmation
                 from django.core.mail import send_mail
                 send_mail(
@@ -1112,9 +1116,7 @@ def mpesa_callback(request):
                     fail_silently=True,
                 )
                 
-                return JsonResponse({'status': 'success'})
-            else:
-                print(f"Debug: Payment failed or not found")
+                return JsonResponse({'status': 'success', 'message': 'Payment processed successfully'})
         
         except Exception as e:
             print(f"M-Pesa callback error: {e}")

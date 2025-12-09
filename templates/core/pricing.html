@@ -53,13 +53,13 @@
                         </li>
                     </ul>
                     
-                    {% if is_pro %}
+                    {% if not is_pro %}
                         <button class="w-full py-3 px-6 bg-vintage-dark text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-brown transition-colors cursor-not-allowed" disabled>
                             Current Plan
                         </button>
                     {% else %}
-                        <button class="w-full py-3 px-6 bg-vintage-dark text-white font-display uppercase tracking-widest text-sm hover:bg-vintage-brown transition-colors cursor-not-allowed" disabled>
-                            Current Plan
+                        <button class="w-full py-3 px-6 bg-vintage-dark/50 text-white font-display uppercase tracking-widest text-sm cursor-not-allowed" disabled>
+                            Upgrade Available
                         </button>
                     {% endif %}
                 </div>
@@ -211,10 +211,68 @@
         }
     });
     
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+    // Auto-refresh after payment confirmation
+    function checkPaymentStatus() {
+        // Check if payment is pending
+        const cookies = document.cookie.split(';');
+        let paymentPending = false;
+        for (let cookie of cookies) {
+            if (cookie.trim().startsWith('payment_pending=true')) {
+                paymentPending = true;
+                break;
+            }
+        }
+        
+        if (paymentPending) {
+            // Poll for subscription status every 3 seconds
+            let checkCount = 0;
+            const maxChecks = 100; // 5 minutes (100 * 3 seconds)
+            
+            const checkInterval = setInterval(function() {
+                checkCount++;
+                
+                // Fetch current page to check if user is now Pro
+                fetch(window.location.href, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    cache: 'no-cache'
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Check if user is now Pro by looking for "Active Subscription" text
+                    if (html.includes('Active Subscription') || html.includes('ACTIVE SUBSCRIPTION') || html.includes('ACTIVE')) {
+                        clearInterval(checkInterval);
+                        // Clear the cookie
+                        document.cookie = 'payment_pending=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                        // Show success message and reload
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    // Silently fail
+                });
+                
+                // Stop checking after max attempts
+                if (checkCount >= maxChecks) {
+                    clearInterval(checkInterval);
+                    document.cookie = 'payment_pending=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                }
+            }, 3000); // Check every 3 seconds
+        }
     }
+    
+    // Start checking when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        checkPaymentStatus();
+        
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
 </script>
 {% endblock %}
 

@@ -118,24 +118,9 @@ def initiate_mpesa_stk_push(phone_number, amount, account_reference, callback_ur
     }
     
     try:
-        print(f"Debug: STK Push payload: {payload}")
         response = requests.post(url, json=payload, headers=headers, timeout=30)
-        
-        print(f"Debug: Response status: {response.status_code}")
-        print(f"Debug: Response headers: {dict(response.headers)}")
-        
-        if response.status_code != 200:
-            print(f"Debug: Response text: {response.text}")
-            try:
-                error_data = response.json()
-                print(f"Debug: Response JSON: {error_data}")
-            except:
-                pass
-        
         response.raise_for_status()
         data = response.json()
-        
-        print(f"Debug: STK Push response: {data}")
         
         if data.get('ResponseCode') == '0':
             return True, data
@@ -224,38 +209,27 @@ def handle_mpesa_callback(callback_data):
                 phone_number = item.get('Value')
         
         if result_code == 0:  # Success
-            print(f"Debug: Looking for payment with checkout_request_id: {checkout_request_id}")
-            
             # Find payment by checkout request ID
             # SQLite doesn't support contains lookup on JSONField, so we need to search differently
             payments = Payment.objects.filter(method='mpesa', status='pending')
-            print(f"Debug: Found {payments.count()} pending M-Pesa payments")
-            
             payment = None
             
             # Search through pending payments to find matching checkout_request_id
             for p in payments:
-                print(f"Debug: Checking payment {p.id}: metadata={p.metadata}, transaction_id={p.transaction_id}")
                 if p.metadata and p.metadata.get('checkout_request_id') == checkout_request_id:
                     payment = p
-                    print(f"Debug: Found payment by checkout_request_id: {p.id}")
                     break
             
             # If not found by checkout_request_id, try to find by transaction_id
             if not payment:
-                print(f"Debug: Trying to find by transaction_id: {checkout_request_id}")
                 payment = Payment.objects.filter(
                     transaction_id=checkout_request_id,
                     method='mpesa',
                     status='pending'
                 ).first()
-                if payment:
-                    print(f"Debug: Found payment by transaction_id: {payment.id}")
             
             # If still not found, try to find by phone number and recent timestamp (within last 5 minutes)
             if not payment and phone_number:
-                print(f"Debug: Trying to find by phone number: {phone_number}")
-                from datetime import timedelta
                 recent_time = timezone.now() - timedelta(minutes=5)
                 payments = Payment.objects.filter(
                     method='mpesa',
@@ -265,11 +239,9 @@ def handle_mpesa_callback(callback_data):
                 for p in payments:
                     if p.metadata and p.metadata.get('phone_number') == str(phone_number):
                         payment = p
-                        print(f"Debug: Found payment by phone number and recent timestamp: {p.id}")
                         break
             
             if payment:
-                print(f"Debug: Processing payment {payment.id} for user {payment.user.username}")
                 payment.status = 'completed'
                 payment.transaction_id = transaction_id or checkout_request_id
                 payment.metadata.update({
@@ -287,9 +259,7 @@ def handle_mpesa_callback(callback_data):
                     subscription.payment_method = 'mpesa'
                     subscription.expiry_date = timezone.now() + timedelta(days=30)
                     subscription.save()
-                    print(f"Debug: Subscription activated for user {payment.user.username} - tier: {subscription.tier}, status: {subscription.status}")
                 else:
-                    print(f"Debug: Warning - No subscription found for user {payment.user.username}, creating one...")
                     subscription = Subscription.objects.create(
                         user=payment.user,
                         tier='pro',
@@ -299,14 +269,8 @@ def handle_mpesa_callback(callback_data):
                     )
                     payment.subscription = subscription
                     payment.save()
-                    print(f"Debug: Created and activated subscription for user {payment.user.username}")
                 
                 return True, payment
-            else:
-                print(f"Debug: ERROR - Payment not found for checkout_request_id: {checkout_request_id}")
-                print(f"Debug: Available pending payments:")
-                for p in Payment.objects.filter(method='mpesa', status='pending'):
-                    print(f"  - Payment {p.id}: transaction_id={p.transaction_id}, metadata={p.metadata}")
         
         return False, None
     except Exception as e:
