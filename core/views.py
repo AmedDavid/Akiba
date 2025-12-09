@@ -5,9 +5,11 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta
 import PyPDF2
 import re
+import os
 from decimal import Decimal
 
 from .models import (
@@ -1006,8 +1008,26 @@ def upgrade_mpesa(request):
         
         # Create pending payment
         from django.conf import settings
-        callback_url = request.build_absolute_uri('/payments/mpesa/callback/')
-        account_reference = f"AKIBA-{request.user.id}-{timezone.now().timestamp()}"
+        # For sandbox, M-Pesa requires a publicly accessible callback URL
+        # Options:
+        # 1. Use ngrok: ngrok http 8000 (then use the ngrok URL)
+        # 2. Use webhook.site for testing: https://webhook.site
+        # 3. Deploy to a server with a public URL
+        
+        # Check if callback URL is set in environment, otherwise use localhost (won't work in sandbox)
+        # Load from .env file via settings or environment variable
+        from django.conf import settings
+        callback_url = getattr(settings, 'MPESA_CALLBACK_URL', None) or os.environ.get('MPESA_CALLBACK_URL', None)
+        if not callback_url:
+            if settings.DEBUG:
+                # For local development, you MUST use ngrok or webhook.site
+                # This localhost URL won't work with M-Pesa sandbox
+                callback_url = request.build_absolute_uri('/payments/mpesa/callback/')
+                messages.warning(request, 'Warning: Using localhost callback URL. For sandbox testing, set MPESA_CALLBACK_URL in .env file to a public URL (e.g., ngrok URL).')
+            else:
+                callback_url = request.build_absolute_uri('/payments/mpesa/callback/')
+        
+        account_reference = f"AKIBA-{request.user.id}-{int(timezone.now().timestamp())}"
         
         payment = Payment.objects.create(
             user=request.user,
@@ -1032,9 +1052,14 @@ def upgrade_mpesa(request):
         
         if success:
             checkout_request_id = response.get('CheckoutRequestID', '')
+            # Update payment metadata with checkout_request_id for callback matching
+            if not payment.metadata:
+                payment.metadata = {}
             payment.metadata['checkout_request_id'] = checkout_request_id
             payment.transaction_id = checkout_request_id
             payment.save()
+            print(f"Debug: Payment {payment.id} saved with checkout_request_id: {checkout_request_id}")
+            print(f"Debug: Payment metadata after save: {payment.metadata}")
             
             messages.info(request, 'M-Pesa STK Push initiated! Please check your phone and enter your M-Pesa PIN to complete the payment.')
             return redirect('pricing')
@@ -1066,14 +1091,17 @@ def upgrade_stripe(request):
         return redirect('pricing')
 
 
+@csrf_exempt
 def mpesa_callback(request):
     """Handle M-Pesa callback after payment"""
     if request.method == 'POST':
         try:
             callback_data = json.loads(request.body)
+            print(f"Debug: M-Pesa callback received: {callback_data}")
             success, payment = handle_mpesa_callback(callback_data)
             
             if success and payment:
+                print(f"Debug: Payment successful! Payment ID: {payment.id}")
                 # Send email confirmation
                 from django.core.mail import send_mail
                 send_mail(
@@ -1085,9 +1113,13 @@ def mpesa_callback(request):
                 )
                 
                 return JsonResponse({'status': 'success'})
+            else:
+                print(f"Debug: Payment failed or not found")
         
         except Exception as e:
             print(f"M-Pesa callback error: {e}")
+            import traceback
+            traceback.print_exc()
     
     return JsonResponse({'status': 'error'}, status=400)
 

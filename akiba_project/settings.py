@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +30,11 @@ SECRET_KEY = 'django-insecure-pvghx9vqhbfj7h8i2v%8y768ehsvq((qm_=%e(7$hj9#p4-+!%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '1470c6463679.ngrok-free.app']
+# Add ngrok domain dynamically if set in environment
+ngrok_domain = os.environ.get('NGROK_DOMAIN', None)
+if ngrok_domain:
+    ALLOWED_HOSTS.append(ngrok_domain)
 
 
 # Application definition
@@ -152,6 +160,7 @@ MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET', 'your_consumer_s
 MPESA_SHORTCODE = os.environ.get('MPESA_SHORTCODE', '174379')  # Sandbox shortcode
 MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY', 'your_passkey_here')
 MPESA_BASE_URL = os.environ.get('MPESA_BASE_URL', 'https://sandbox.safaricom.co.ke')
+MPESA_CALLBACK_URL = os.environ.get('MPESA_CALLBACK_URL', None)  # Public URL for callbacks (required for sandbox)
 
 # Stripe (Test keys - for production, use live keys)
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_your_key_here')

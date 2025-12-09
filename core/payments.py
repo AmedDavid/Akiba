@@ -2,6 +2,7 @@
 Payment processing utilities for M-Pesa and Stripe
 """
 import base64
+import os
 import requests
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -25,12 +26,18 @@ STRIPE_WEBHOOK_SECRET = getattr(settings, 'STRIPE_WEBHOOK_SECRET', 'whsec_your_s
 stripe.api_key = STRIPE_SECRET_KEY
 
 # Subscription pricing
-PRO_MONTHLY_PRICE = 199  # KSh 199/month
+# For testing, set to 1. For production, use 199
+PRO_MONTHLY_PRICE = int(os.environ.get('PRO_MONTHLY_PRICE', '1'))  # Default to 1 for testing, change to 199 for production
 
 
 def get_mpesa_access_token():
     """Get M-Pesa OAuth access token"""
     url = f"{MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
+    
+    # Check if credentials are set
+    if MPESA_CONSUMER_KEY == 'your_consumer_key_here' or MPESA_CONSUMER_SECRET == 'your_consumer_secret_here':
+        print("M-Pesa error: Consumer key or secret not configured. Please set MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET in .env file")
+        return None
     
     # Encode consumer key and secret
     credentials = f"{MPESA_CONSUMER_KEY}:{MPESA_CONSUMER_SECRET}"
@@ -41,12 +48,28 @@ def get_mpesa_access_token():
     }
     
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
         data = response.json()
-        return data.get('access_token')
+        access_token = data.get('access_token')
+        if not access_token:
+            print(f"M-Pesa error: No access token in response: {data}")
+        return access_token
+    except requests.exceptions.HTTPError as e:
+        error_detail = ""
+        try:
+            error_detail = response.json()
+        except:
+            error_detail = response.text
+        print(f"M-Pesa access token error: {e}")
+        print(f"Response status: {response.status_code}")
+        print(f"Response body: {error_detail}")
+        print(f"Response headers: {dict(response.headers)}")
+        return None
     except Exception as e:
         print(f"M-Pesa access token error: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -81,30 +104,59 @@ def initiate_mpesa_stk_push(phone_number, amount, account_reference, callback_ur
         phone = '254' + phone
     
     payload = {
-        "BusinessShortCode": MPESA_SHORTCODE,
+        "BusinessShortCode": str(MPESA_SHORTCODE),
         "Password": password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": int(amount),
         "PartyA": phone,
-        "PartyB": MPESA_SHORTCODE,
+        "PartyB": str(MPESA_SHORTCODE),
         "PhoneNumber": phone,
         "CallBackURL": callback_url,
         "AccountReference": account_reference,
-        "TransactionDesc": f"Akiba Pro Subscription - {account_reference}"
+        "TransactionDesc": f"Akiba Pro Subscription"
     }
     
     try:
-        response = requests.post(url, json=payload, headers=headers)
+        print(f"Debug: STK Push payload: {payload}")
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        
+        print(f"Debug: Response status: {response.status_code}")
+        print(f"Debug: Response headers: {dict(response.headers)}")
+        
+        if response.status_code != 200:
+            print(f"Debug: Response text: {response.text}")
+            try:
+                error_data = response.json()
+                print(f"Debug: Response JSON: {error_data}")
+            except:
+                pass
+        
         response.raise_for_status()
         data = response.json()
+        
+        print(f"Debug: STK Push response: {data}")
         
         if data.get('ResponseCode') == '0':
             return True, data
         else:
-            return False, data
+            error_msg = data.get('errorMessage', data.get('ResponseDescription', 'Unknown error'))
+            print(f"M-Pesa STK Push error: {error_msg}")
+            return False, {'error': error_msg, 'response': data}
+    except requests.exceptions.HTTPError as e:
+        error_detail = ""
+        try:
+            error_detail = response.json()
+        except:
+            error_detail = response.text
+        print(f"M-Pesa STK Push error: {e}")
+        print(f"Response status: {response.status_code}")
+        print(f"Response body: {error_detail}")
+        return False, {'error': str(e), 'response': error_detail}
     except Exception as e:
         print(f"M-Pesa STK Push error: {e}")
+        import traceback
+        traceback.print_exc()
         return False, {'error': str(e)}
 
 
@@ -172,12 +224,52 @@ def handle_mpesa_callback(callback_data):
                 phone_number = item.get('Value')
         
         if result_code == 0:  # Success
+            print(f"Debug: Looking for payment with checkout_request_id: {checkout_request_id}")
+            
             # Find payment by checkout request ID
-            payment = Payment.objects.filter(
-                metadata__contains={'checkout_request_id': checkout_request_id}
-            ).first()
+            # SQLite doesn't support contains lookup on JSONField, so we need to search differently
+            payments = Payment.objects.filter(method='mpesa', status='pending')
+            print(f"Debug: Found {payments.count()} pending M-Pesa payments")
+            
+            payment = None
+            
+            # Search through pending payments to find matching checkout_request_id
+            for p in payments:
+                print(f"Debug: Checking payment {p.id}: metadata={p.metadata}, transaction_id={p.transaction_id}")
+                if p.metadata and p.metadata.get('checkout_request_id') == checkout_request_id:
+                    payment = p
+                    print(f"Debug: Found payment by checkout_request_id: {p.id}")
+                    break
+            
+            # If not found by checkout_request_id, try to find by transaction_id
+            if not payment:
+                print(f"Debug: Trying to find by transaction_id: {checkout_request_id}")
+                payment = Payment.objects.filter(
+                    transaction_id=checkout_request_id,
+                    method='mpesa',
+                    status='pending'
+                ).first()
+                if payment:
+                    print(f"Debug: Found payment by transaction_id: {payment.id}")
+            
+            # If still not found, try to find by phone number and recent timestamp (within last 5 minutes)
+            if not payment and phone_number:
+                print(f"Debug: Trying to find by phone number: {phone_number}")
+                from datetime import timedelta
+                recent_time = timezone.now() - timedelta(minutes=5)
+                payments = Payment.objects.filter(
+                    method='mpesa',
+                    status='pending',
+                    created_at__gte=recent_time
+                )
+                for p in payments:
+                    if p.metadata and p.metadata.get('phone_number') == str(phone_number):
+                        payment = p
+                        print(f"Debug: Found payment by phone number and recent timestamp: {p.id}")
+                        break
             
             if payment:
+                print(f"Debug: Processing payment {payment.id} for user {payment.user.username}")
                 payment.status = 'completed'
                 payment.transaction_id = transaction_id or checkout_request_id
                 payment.metadata.update({
@@ -189,13 +281,32 @@ def handle_mpesa_callback(callback_data):
                 
                 # Activate subscription
                 subscription = payment.subscription or payment.user.subscription
-                subscription.tier = 'pro'
-                subscription.status = 'active'
-                subscription.payment_method = 'mpesa'
-                subscription.expiry_date = timezone.now() + timedelta(days=30)
-                subscription.save()
+                if subscription:
+                    subscription.tier = 'pro'
+                    subscription.status = 'active'
+                    subscription.payment_method = 'mpesa'
+                    subscription.expiry_date = timezone.now() + timedelta(days=30)
+                    subscription.save()
+                    print(f"Debug: Subscription activated for user {payment.user.username} - tier: {subscription.tier}, status: {subscription.status}")
+                else:
+                    print(f"Debug: Warning - No subscription found for user {payment.user.username}, creating one...")
+                    subscription = Subscription.objects.create(
+                        user=payment.user,
+                        tier='pro',
+                        status='active',
+                        payment_method='mpesa',
+                        expiry_date=timezone.now() + timedelta(days=30)
+                    )
+                    payment.subscription = subscription
+                    payment.save()
+                    print(f"Debug: Created and activated subscription for user {payment.user.username}")
                 
                 return True, payment
+            else:
+                print(f"Debug: ERROR - Payment not found for checkout_request_id: {checkout_request_id}")
+                print(f"Debug: Available pending payments:")
+                for p in Payment.objects.filter(method='mpesa', status='pending'):
+                    print(f"  - Payment {p.id}: transaction_id={p.transaction_id}, metadata={p.metadata}")
         
         return False, None
     except Exception as e:
