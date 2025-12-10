@@ -21,6 +21,7 @@ urlpatterns = [
     path('daily-saving/', views.daily_saving_log, name='daily_saving_log'),
     path('upload/', views.upload_statement, name='upload_statement'),
     path('insights/', views.insights, name='insights'),
+    path('statements/<int:statement_id>/delete/', views.delete_statement, name='delete_statement'),
     path('tribes/', views.tribes_list, name='tribes'),
     path('tribes/create/', views.tribe_create, name='tribe_create'),
     path('tribes/<int:tribe_id>/', views.tribe_detail, name='tribe_detail'),

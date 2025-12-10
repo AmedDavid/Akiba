@@ -55,6 +55,8 @@ class MpesaStatement(models.Model):
     pdf_file = models.FileField(upload_to=statement_upload_path)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     period_months = models.IntegerField(default=1)
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
     
     # Parsed data
     total_incoming = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)

@@ -12,6 +12,27 @@ import re
 import os
 from decimal import Decimal
 
+# Try to import QR code scanning libraries (optional)
+try:
+    from pyzbar import pyzbar
+    from pdf2image import convert_from_path
+    QR_CODE_AVAILABLE = True
+except ImportError:
+    QR_CODE_AVAILABLE = False
+    pyzbar = None
+    convert_from_path = None
+
+def convert_decimals_to_strings(obj):
+    """Recursively convert Decimal values to strings for JSON serialization"""
+    if isinstance(obj, Decimal):
+        return str(obj)
+    elif isinstance(obj, dict):
+        return {key: convert_decimals_to_strings(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_decimals_to_strings(item) for item in obj]
+    else:
+        return obj
+
 from .models import (
     UserProfile, Goal, DailySaving, MpesaStatement, Tribe, TribePost,
     Achievement, UserAchievement, SavingsChallenge, ChallengeProgress, Notification,
@@ -377,17 +398,83 @@ def daily_saving_log(request):
 def parse_mpesa_pdf(pdf_file):
     """Parse M-Pesa PDF statement and extract transactions"""
     transactions = []
+    period_start = None
+    period_end = None
     betting_keywords = ['bet', 'sportpesa', 'betway', 'betika', 'odds', 'gaming']
-    airtime_keywords = ['airtime', 'top up']
-    fuliza_keywords = ['fuliza', 'm-shwari']
+    airtime_keywords = ['airtime', 'top up', 'bundle purchase', 'customer bundle']
+    fuliza_loan_keywords = ['overdraft of credit', 'over draw', 'od loan', 'fuliza loan', 'overdraft']  # Actual Fuliza credit usage
+    fuliza_repayment_keywords = ['od loan repayment', 'fuliza repayment', 'loan repayment to 232323']  # Repaying Fuliza
+    mshwari_deposit_keywords = ['m-shwari deposit', 'mshwari deposit', 'm-shwari']  # Saving to M-Shwari (check for deposit context)
+    mshwari_withdraw_keywords = ['m-shwari withdraw', 'mshwari withdraw', 'm-shwari']  # Withdrawing from M-Shwari
     bar_keywords = ['bar', 'pub', 'club', 'restaurant', 'hotel']
-    till_keywords = ['till', 'paybill']
+    till_keywords = ['till', 'paybill', 'merchant payment']
     
     try:
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         text = ''
         for page in pdf_reader.pages:
             text += page.extract_text()
+        
+        # Try to extract data from QR code first (more accurate)
+        qr_data = None
+        if QR_CODE_AVAILABLE:
+            try:
+                # For uploaded files, we need to save temporarily or use bytes
+                # Try to get file path first
+                pdf_path = None
+                if hasattr(pdf_file, 'temporary_file_path'):
+                    # File is already on disk
+                    pdf_path = pdf_file.temporary_file_path()
+                elif hasattr(pdf_file, 'name') and os.path.exists(pdf_file.name):
+                    pdf_path = pdf_file.name
+                else:
+                    # Save to temporary file
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+                        pdf_file.seek(0)
+                        tmp_file.write(pdf_file.read())
+                        pdf_path = tmp_file.name
+                
+                if pdf_path:
+                    # Convert PDF to images and scan for QR codes
+                    images = convert_from_path(pdf_path, first_page=1, last_page=1, dpi=200)
+                    if images:
+                        qr_results = pyzbar.decode(images[0])
+                        if qr_results:
+                            qr_data = qr_results[0].data.decode('utf-8')
+                            # QR code data can contain transaction info - parse if needed
+                    
+                    # Clean up temporary file if we created it
+                    if not (hasattr(pdf_file, 'temporary_file_path') or (hasattr(pdf_file, 'name') and os.path.exists(pdf_file.name))):
+                        try:
+                            os.unlink(pdf_path)
+                        except:
+                            pass
+            except Exception as e:
+                # QR code scanning failed, fall back to text parsing
+                print(f"QR code scanning failed: {e}")
+                pass
+        
+        # Extract statement period from header (e.g., "10 Sep 2025 - 10 Dec 2025")
+        # Look for date range patterns in the text
+        period_patterns = [
+            r'(\d{1,2}\s+\w+\s+\d{4})\s*-\s*(\d{1,2}\s+\w+\s+\d{4})',  # "10 Sep 2025 - 10 Dec 2025"
+            r'(\d{1,2}[/-]\d{1,2}[/-]\d{4})\s*-\s*(\d{1,2}[/-]\d{1,2}[/-]\d{4})',  # "10/09/2025 - 10/12/2025"
+            r'statement period[:\s]+(\d{1,2}\s+\w+\s+\d{4})\s*-\s*(\d{1,2}\s+\w+\s+\d{4})',  # "Statement Period: 10 Sep 2025 - 10 Dec 2025"
+        ]
+        
+        for pattern in period_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                try:
+                    from dateutil import parser as date_parser
+                    period_start_str = match.group(1).strip()
+                    period_end_str = match.group(2).strip()
+                    period_start = date_parser.parse(period_start_str).date()
+                    period_end = date_parser.parse(period_end_str).date()
+                    break
+                except:
+                    continue
         
         # Extract transactions using regex
         # M-Pesa statements typically have date, description, amount patterns
@@ -428,37 +515,66 @@ def parse_mpesa_pdf(pdf_file):
         categorized = {
             'betting': Decimal('0.00'),
             'airtime': Decimal('0.00'),
-            'fuliza': Decimal('0.00'),
+            'fuliza': Decimal('0.00'),  # Only actual Fuliza loans and repayments
             'bars': Decimal('0.00'),
             'till_withdrawals': Decimal('0.00'),
             'other': Decimal('0.00'),
             'incoming': Decimal('0.00'),
+            'mshwari_savings': Decimal('0.00'),  # Track M-Shwari deposits (savings)
         }
         
         for trans in transactions:
             desc = trans.get('description', '')
             amount = trans.get('amount', Decimal('0.00'))
+            abs_amount = abs(amount)
             
-            if any(kw in desc for kw in betting_keywords):
-                categorized['betting'] += abs(amount)
+            # M-Shwari deposits (savings - not spending, but track separately)
+            # Check for "deposit" keyword specifically to distinguish from withdrawals
+            if any(kw in desc for kw in mshwari_deposit_keywords) and 'deposit' in desc:
+                categorized['mshwari_savings'] += abs_amount
+                # This is money being saved, not spent, so don't count as outgoing
+                # The money was already counted as incoming when received
+            # M-Shwari withdrawals (money coming back to M-Pesa - not spending)
+            elif any(kw in desc for kw in mshwari_withdraw_keywords) and ('withdraw' in desc or 'withdrawal' in desc):
+                # This is money being moved back to M-Pesa, count as incoming
+                if amount > 0:
+                    categorized['incoming'] += amount
+            # Fuliza loan repayments (actual spending to pay back credit)
+            elif any(kw in desc for kw in fuliza_repayment_keywords):
+                categorized['fuliza'] += abs_amount
+            # Fuliza loans (actual credit usage - spending)
+            # Check for "overdraft of credit" or similar patterns
+            elif any(kw in desc for kw in fuliza_loan_keywords):
+                # Only count if it's an actual loan (not a repayment)
+                if 'repayment' not in desc and ('overdraft of credit' in desc or 'over draw' in desc):
+                    categorized['fuliza'] += abs_amount
+            # Betting
+            elif any(kw in desc for kw in betting_keywords):
+                categorized['betting'] += abs_amount
+            # Airtime/Bundles
             elif any(kw in desc for kw in airtime_keywords):
-                categorized['airtime'] += abs(amount)
-            elif any(kw in desc for kw in fuliza_keywords):
-                categorized['fuliza'] += abs(amount)
+                categorized['airtime'] += abs_amount
+            # Bars/Restaurants
             elif any(kw in desc for kw in bar_keywords):
-                categorized['bars'] += abs(amount)
+                categorized['bars'] += abs_amount
+            # Till/Paybill
             elif any(kw in desc for kw in till_keywords):
-                categorized['till_withdrawals'] += abs(amount)
+                categorized['till_withdrawals'] += abs_amount
+            # Other transactions
             elif amount > 0:
+                # Positive amounts are incoming (unless they're specific spending types)
                 categorized['incoming'] += amount
             else:
-                categorized['other'] += abs(amount)
+                # Negative amounts are outgoing spending
+                categorized['other'] += abs_amount
         
         return {
             'transactions': transactions,
             'categorized': categorized,
             'total_incoming': categorized['incoming'],
             'total_outgoing': categorized['betting'] + categorized['airtime'] + categorized['fuliza'] + categorized['bars'] + categorized['till_withdrawals'] + categorized['other'],
+            'period_start': period_start,
+            'period_end': period_end,
         }
     
     except Exception as e:
@@ -483,8 +599,11 @@ def upload_statement(request):
                 messages.error(request, f'Error parsing PDF: {parsed["error"]}')
                 return render(request, 'core/upload_statement.html', {'form': form})
             
+            # Convert Decimal values to strings for JSON serialization
+            parsed_json_safe = convert_decimals_to_strings(parsed)
+            
             # Save parsed data
-            statement.parsed_data = parsed
+            statement.parsed_data = parsed_json_safe
             statement.total_incoming = parsed.get('total_incoming', Decimal('0.00'))
             statement.total_outgoing = parsed.get('total_outgoing', Decimal('0.00'))
             statement.betting_spent = parsed['categorized'].get('betting', Decimal('0.00'))
@@ -493,6 +612,18 @@ def upload_statement(request):
             statement.bars_spent = parsed['categorized'].get('bars', Decimal('0.00'))
             statement.till_withdrawals = parsed['categorized'].get('till_withdrawals', Decimal('0.00'))
             statement.other_spent = parsed['categorized'].get('other', Decimal('0.00'))
+            
+            # Save period dates if extracted
+            if parsed.get('period_start'):
+                statement.period_start = parsed['period_start']
+            if parsed.get('period_end'):
+                statement.period_end = parsed['period_end']
+            
+            # Calculate period_months if dates are available
+            if statement.period_start and statement.period_end:
+                from dateutil.relativedelta import relativedelta
+                delta = relativedelta(statement.period_end, statement.period_start)
+                statement.period_months = delta.months + (delta.years * 12) + (1 if delta.days > 0 else 0)
             
             statement.save()
             messages.success(request, 'M-Pesa statement uploaded and analyzed successfully!')
@@ -504,6 +635,28 @@ def upload_statement(request):
 
 
 @login_required
+def delete_statement(request, statement_id):
+    """Delete an M-Pesa statement"""
+    statement = get_object_or_404(MpesaStatement, id=statement_id, user=request.user)
+    
+    if request.method == 'POST':
+        # Delete the PDF file from storage before deleting the model instance
+        if statement.pdf_file:
+            try:
+                statement.pdf_file.delete(save=False)
+            except Exception as e:
+                # Log error but continue with deletion
+                print(f"Error deleting PDF file: {e}")
+        
+        # Delete the model instance (this will also trigger file deletion if not done above)
+        statement.delete()
+        messages.success(request, 'M-Pesa statement deleted successfully!')
+        return redirect('insights')
+    
+    return redirect('insights')
+
+
+@login_required
 def insights(request):
     """Spending insights page"""
     statements = MpesaStatement.objects.filter(user=request.user).order_by('-uploaded_at')
@@ -511,16 +664,92 @@ def insights(request):
     if statements.exists():
         latest = statements.first()
         net_amount = latest.total_incoming - latest.total_outgoing
+        
+        # Calculate percentages for each category
+        total_spending = latest.total_outgoing
+        if total_spending > 0:
+            category_percentages = {
+                'betting': (latest.betting_spent / total_spending * 100) if latest.betting_spent > 0 else 0,
+                'airtime': (latest.airtime_spent / total_spending * 100) if latest.airtime_spent > 0 else 0,
+                'fuliza': (latest.fuliza_spent / total_spending * 100) if latest.fuliza_spent > 0 else 0,
+                'bars': (latest.bars_spent / total_spending * 100) if latest.bars_spent > 0 else 0,
+                'till_withdrawals': (latest.till_withdrawals / total_spending * 100) if latest.till_withdrawals > 0 else 0,
+                'other': (latest.other_spent / total_spending * 100) if latest.other_spent > 0 else 0,
+            }
+        else:
+            category_percentages = {
+                'betting': 0, 'airtime': 0, 'fuliza': 0, 'bars': 0, 'till_withdrawals': 0, 'other': 0
+            }
+        
+        # Get top spending categories with formatted names
+        category_names = {
+            'betting': 'Betting',
+            'airtime': 'Airtime',
+            'fuliza': 'Fuliza',
+            'bars': 'Bars & Restaurants',
+            'till_withdrawals': 'Till Withdrawals',
+            'other': 'Other',
+        }
+        categories = [
+            (category_names['betting'], latest.betting_spent, category_percentages['betting']),
+            (category_names['airtime'], latest.airtime_spent, category_percentages['airtime']),
+            (category_names['fuliza'], latest.fuliza_spent, category_percentages['fuliza']),
+            (category_names['bars'], latest.bars_spent, category_percentages['bars']),
+            (category_names['till_withdrawals'], latest.till_withdrawals, category_percentages['till_withdrawals']),
+            (category_names['other'], latest.other_spent, category_percentages['other']),
+        ]
+        top_categories = sorted([c for c in categories if c[1] > 0], key=lambda x: x[1], reverse=True)[:3]
+        
+        # Get recent transactions from parsed_data
+        transactions = []
+        if latest.parsed_data and 'transactions' in latest.parsed_data:
+            transactions = latest.parsed_data['transactions'][:10]  # Last 10 transactions
+        
+        # Generate recommendations
+        recommendations = []
+        if latest.total_incoming > 0 and latest.betting_spent > latest.total_incoming * Decimal('0.3'):
+            recommendations.append({
+                'type': 'warning',
+                'title': 'High Betting Spending',
+                'message': f'You\'re spending {category_percentages["betting"]:.1f}% of your money on betting. Consider setting a monthly limit.'
+            })
+        if latest.fuliza_spent > 0:
+            recommendations.append({
+                'type': 'info',
+                'title': 'Fuliza Usage Detected',
+                'message': 'You\'re using M-Pesa Fuliza. Try to pay off credit quickly to avoid fees and save more.'
+            })
+        if net_amount < 0:
+            recommendations.append({
+                'type': 'error',
+                'title': 'Negative Net Balance',
+                'message': 'Your spending exceeds your income. Review your expenses and create a budget.'
+            })
+        elif net_amount > 0:
+            recommendations.append({
+                'type': 'success',
+                'title': 'Positive Savings',
+                'message': f'Great! You saved KSh {net_amount:.2f}. Consider adding this to a savings goal!'
+            })
+        
         context = {
             'statements': statements,
             'latest': latest,
             'net_amount': net_amount,
+            'category_percentages': category_percentages,
+            'top_categories': top_categories,
+            'transactions': transactions,
+            'recommendations': recommendations,
         }
     else:
         context = {
             'statements': [],
             'latest': None,
             'net_amount': Decimal('0.00'),
+            'category_percentages': {},
+            'top_categories': [],
+            'transactions': [],
+            'recommendations': [],
         }
     
     return render(request, 'core/insights.html', context)
