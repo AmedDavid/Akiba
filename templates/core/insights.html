@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load money %}
+{% load humanize %}
 
 {% block title %}Insights - Akiba{% endblock %}
 
@@ -34,21 +34,21 @@
                     <i data-lucide="arrow-down" class="w-8 h-8 text-vintage-olive"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Incoming</span>
                 </div>
-                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ latest.total_incoming|floatformat:2 }}</p>
+                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ latest.total_incoming|floatformat:2|intcomma }}</p>
             </div>
             <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
                 <div class="flex items-center gap-3 mb-2">
                     <i data-lucide="arrow-up" class="w-8 h-8 text-vintage-red"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Outgoing</span>
                 </div>
-                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ latest.total_outgoing|floatformat:2 }}</p>
+                <p class="text-xl md:text-2xl lg:text-3xl font-serif text-vintage-dark font-bold break-words">KSh {{ latest.total_outgoing|floatformat:2|intcomma }}</p>
             </div>
             <div class="bg-white p-6 border border-vintage-dark/10 shadow-sm">
                 <div class="flex items-center gap-3 mb-2">
                     <i data-lucide="trending-down" class="w-8 h-8 {% if net_amount >= 0 %}text-vintage-olive{% else %}text-vintage-red{% endif %}"></i>
                     <span class="text-xs font-display uppercase tracking-widest text-vintage-brown">Net</span>
                 </div>
-                <p class="text-xl md:text-2xl lg:text-3xl font-serif {% if net_amount >= 0 %}text-vintage-olive{% else %}text-vintage-red{% endif %} font-bold break-words">KSh {{ net_amount|floatformat:2|default:"0.00" }}</p>
+                <p class="text-xl md:text-2xl lg:text-3xl font-serif {% if net_amount >= 0 %}text-vintage-olive{% else %}text-vintage-red{% endif %} font-bold break-words">KSh {{ net_amount|floatformat:2|intcomma }}</p>
             </div>
         </div>
 
@@ -122,7 +122,7 @@
                             <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Betting</span>
                             <span class="ml-2 text-xs text-vintage-brown">({{ category_percentages.betting|floatformat:1 }}%)</span>
                         </div>
-                        <span class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ latest.betting_spent|floatformat:2 }}</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ latest.betting_spent|floatformat:2|intcomma }}</span>
                     </div>
                     <p class="text-xs md:text-sm text-vintage-brown italic break-words">That's enough for a PS5 or a month's rent!</p>
                 </div>
@@ -135,7 +135,7 @@
                             <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Airtime</span>
                             <span class="ml-2 text-xs text-vintage-brown">({{ category_percentages.airtime|floatformat:1 }}%)</span>
                         </div>
-                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.airtime_spent|floatformat:2 }}</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.airtime_spent|floatformat:2|intcomma }}</span>
                     </div>
                 </div>
                 {% endif %}
@@ -147,7 +147,7 @@
                             <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Fuliza/M-Shwari</span>
                             <span class="ml-2 text-xs text-vintage-brown">({{ category_percentages.fuliza|floatformat:1 }}%)</span>
                         </div>
-                        <span class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ latest.fuliza_spent|floatformat:2 }}</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-red font-bold whitespace-nowrap">KSh {{ latest.fuliza_spent|floatformat:2|intcomma }}</span>
                     </div>
                     <p class="text-xs md:text-sm text-vintage-brown italic break-words">Consider reducing credit usage to save more!</p>
                 </div>
@@ -160,7 +160,7 @@
                             <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Bars/Restaurants</span>
                             <span class="ml-2 text-xs text-vintage-brown">({{ category_percentages.bars|floatformat:1 }}%)</span>
                         </div>
-                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.bars_spent|floatformat:2 }}</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.bars_spent|floatformat:2|intcomma }}</span>
                     </div>
                 </div>
                 {% endif %}
@@ -172,7 +172,7 @@
                             <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Till Withdrawals</span>
                             <span class="ml-2 text-xs text-vintage-brown">({{ category_percentages.till_withdrawals|floatformat:1 }}%)</span>
                         </div>
-                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.till_withdrawals|floatformat:2 }}</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.till_withdrawals|floatformat:2|intcomma }}</span>
                     </div>
                 </div>
                 {% endif %}
@@ -184,7 +184,7 @@
                             <span class="font-serif text-base md:text-lg text-vintage-dark break-words">Other</span>
                             <span class="ml-2 text-xs text-vintage-brown">({{ category_percentages.other|floatformat:1 }}%)</span>
                         </div>
-                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.other_spent|floatformat:2 }}</span>
+                        <span class="text-lg md:text-xl font-serif text-vintage-brown font-bold whitespace-nowrap">KSh {{ latest.other_spent|floatformat:2|intcomma }}</span>
                     </div>
                 </div>
                 {% endif %}
@@ -239,9 +239,9 @@
                             <span class="text-xs text-vintage-brown">({{ statement.period_months }} month{{ statement.period_months|pluralize }})</span>
                         </div>
                         <div class="mt-1 text-sm">
-                            <span class="font-serif text-vintage-olive">+KSh {{ statement.total_incoming|floatformat:2 }}</span>
+                            <span class="font-serif text-vintage-olive">+KSh {{ statement.total_incoming|floatformat:2|intcomma }}</span>
                             <span class="mx-2 text-vintage-brown">|</span>
-                            <span class="font-serif text-vintage-red">-KSh {{ statement.total_outgoing|floatformat:2 }}</span>
+                            <span class="font-serif text-vintage-red">-KSh {{ statement.total_outgoing|floatformat:2|intcomma }}</span>
                         </div>
                     </div>
                     <button type="button" onclick="openDeleteModal({{ statement.id }}, '{{ statement.uploaded_at|date:"F d, Y" }}')" class="text-vintage-red hover:text-vintage-redlight transition-colors p-2" title="Delete statement">
