@@ -10,7 +10,7 @@
         <div class="bg-white p-10 border border-vintage-dark/10 shadow-[6px_6px_0px_0px_#2C2420]">
             <p class="text-vintage-brown font-serif italic mb-6">Upload your M-Pesa PDF statement to analyze your spending patterns and identify savings opportunities.</p>
             
-            <form method="post" enctype="multipart/form-data" class="space-y-6">
+            <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-6">
                 {% csrf_token %}
                 
                 <div>
@@ -28,6 +28,174 @@
             </form>
         </div>
     </div>
+    <!-- Password Modal -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#F5F2E9] border-2 border-vintage-dark/20 shadow-lg max-w-md w-full p-8 space-y-6" onclick="event.stopPropagation();">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-serif text-vintage-dark font-bold">Encrypted Statement</h3>
+            </div>
+            <div class="space-y-3">
+                <p class="text-vintage-brown font-serif">This PDF is password-protected. Please enter the password to continue.</p>
+                <input id="modalPasswordInput" type="password" class="w-full px-4 py-3 text-base border border-vintage-dark/20 bg-vintage-cream focus:border-vintage-red focus:outline-none" placeholder="Enter PDF password">
+                <p id="modalPasswordError" class="text-vintage-red text-sm hidden"></p>
+                <div class="flex gap-3 pt-2">
+                    <button id="modalCancelBtn" type="button" class="flex-1 py-3 px-6 bg-vintage-dark/10 hover:bg-vintage-dark/20 text-vintage-dark font-display uppercase tracking-widest text-sm transition-colors border border-vintage-dark/20">Cancel</button>
+                    <button id="modalSubmitBtn" type="button" class="flex-1 py-3 px-6 bg-vintage-red hover:bg-vintage-redlight text-white font-display uppercase tracking-widest text-sm transition-colors">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    const uploadForm = document.getElementById('uploadForm');
+    const passwordModal = document.getElementById('passwordModal');
+    const passwordInput = document.getElementById('modalPasswordInput');
+    const passwordError = document.getElementById('modalPasswordError');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+    let lastFormData = null;
+
+    function showPasswordModal(message) {
+        if (!passwordModal || !passwordInput) {
+            console.error('Password modal elements not found');
+            alert(message || 'This PDF is encrypted. Please provide the password.');
+            return;
+        }
+        if (message && passwordError) {
+            passwordError.textContent = message;
+            passwordError.classList.remove('hidden');
+        } else if (passwordError) {
+            passwordError.classList.add('hidden');
+            passwordError.textContent = '';
+        }
+        passwordInput.value = '';
+        passwordModal.classList.remove('hidden');
+    }
+
+    function hidePasswordModal() {
+        if (passwordModal) {
+            passwordModal.classList.add('hidden');
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function submitFormData(formData, passwordMessage) {
+        const csrftoken = getCookie('csrftoken');
+        if (!csrftoken) {
+            console.error('CSRF token not found');
+            alert('CSRF token missing. Please refresh the page and try again.');
+            return;
+        }
+
+        if (!formData.has('pdf_file')) {
+            console.error('PDF file not found in form data');
+            alert('Please select a PDF file to upload.');
+            return;
+        }
+
+        const resp = await fetch("{% url 'upload_statement' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'fetch',
+                'X-CSRFToken': csrftoken
+            },
+            credentials: 'same-origin',
+            body: formData
+        });
+
+        let data;
+        try {
+            const text = await resp.text();
+            data = JSON.parse(text);
+        } catch (e) {
+            alert('Failed to upload statement. Please try again.');
+            return;
+        }
+
+        if (resp.ok && data.ok && data.redirect) {
+            window.location.href = data.redirect;
+            return;
+        }
+
+        if (data.needs_password) {
+            lastFormData = formData;
+            const errorMsg = data.wrong_password
+                ? (passwordMessage || 'Incorrect password. Please try again.')
+                : (data.message || 'This PDF is encrypted. Please enter the password.');
+            showPasswordModal(errorMsg);
+            return;
+        }
+
+        const msg = data.message || 'Failed to upload statement. Please try again.';
+        if (data.errors) {
+            console.error('Form errors:', data.errors);
+            const errorDetails = Object.entries(data.errors).map(([field, errors]) =>
+                `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`
+            ).join('\n');
+            alert(msg + '\n\nDetails:\n' + errorDetails);
+        } else {
+            alert(msg);
+        }
+    }
+
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(uploadForm);
+            formData.delete('pdf_password');
+            await submitFormData(formData);
+        });
+    }
+
+    if (modalCancelBtn) {
+        modalCancelBtn.addEventListener('click', () => {
+            hidePasswordModal();
+        });
+    }
+
+    if (modalSubmitBtn) {
+        modalSubmitBtn.addEventListener('click', async () => {
+            if (!lastFormData) return;
+            if (!passwordInput) {
+                alert('Password input not found. Please refresh the page.');
+                return;
+            }
+            const pwd = passwordInput.value || '';
+            lastFormData.set('pdf_password', pwd);
+            hidePasswordModal();
+            await submitFormData(lastFormData, 'Incorrect password, please try again.');
+        });
+    }
+
+    if (passwordModal) {
+        passwordModal.addEventListener('click', (e) => {
+            if (e.target === passwordModal) {
+                e.stopPropagation();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money %}
 
 {% block title %}Insights - Akiba{% endblock %}
 
@@ -300,10 +301,14 @@
 {% if latest %}
 {% block extra_js %}
 <script>
+(function() {
     // Doughnut Chart - Smaller size
-    const ctx = document.getElementById('spendingChart');
-    if (ctx) {
-        new Chart(ctx, {
+    const spendingCtx = document.getElementById('spendingChart');
+    if (spendingCtx) {
+        if (window.spendingChartInstance) {
+            window.spendingChartInstance.destroy();
+        }
+        window.spendingChartInstance = new Chart(spendingCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Betting', 'Airtime', 'Fuliza', 'Bars', 'Till Withdrawals', 'Other'],
@@ -348,6 +353,9 @@
     // Bar Chart
     const barCtx = document.getElementById('barChart');
     if (barCtx) {
+        if (window.barChartInstance) {
+            window.barChartInstance.destroy();
+        }
         const categories = ['Betting', 'Airtime', 'Fuliza', 'Bars', 'Till Withdrawals', 'Other'];
         const amounts = [
             {{ latest.betting_spent }},
@@ -358,7 +366,7 @@
             {{ latest.other_spent }}
         ];
         
-        new Chart(barCtx, {
+        window.barChartInstance = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: categories,
@@ -415,26 +423,25 @@
     }
 
     // Delete Modal Functions
-    function openDeleteModal(statementId, statementDate) {
+    window.openDeleteModal = function(statementId, statementDate) {
         document.getElementById('deleteStatementDate').textContent = statementDate;
         document.getElementById('deleteForm').action = `/statements/${statementId}/delete/`;
         document.getElementById('deleteModal').classList.remove('hidden');
-        // Re-initialize icons after showing modal
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
-    }
+    };
     
-    function closeDeleteModal() {
+    window.closeDeleteModal = function() {
         document.getElementById('deleteModal').classList.add('hidden');
-    }
+    };
     
-    // Close modal on outside click
     document.getElementById('deleteModal')?.addEventListener('click', function(e) {
         if (e.target === this) {
-            closeDeleteModal();
+            window.closeDeleteModal();
         }
     });
+})();
 </script>
 {% endblock %}
 {% endif %}

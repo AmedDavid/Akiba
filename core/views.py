@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,7 +7,7 @@ from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import PyPDF2
 import re
 import os
@@ -23,9 +24,15 @@ except ImportError:
     convert_from_path = None
 
 def convert_decimals_to_strings(obj):
-    """Recursively convert Decimal values to strings for JSON serialization"""
+    """Recursively convert Decimal and date values to strings for JSON serialization"""
     if isinstance(obj, Decimal):
         return str(obj)
+    elif isinstance(obj, (datetime, date)):
+        # Convert date/datetime to ISO format string
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        else:
+            return obj.isoformat()
     elif isinstance(obj, dict):
         return {key: convert_decimals_to_strings(value) for key, value in obj.items()}
     elif isinstance(obj, list):
@@ -395,11 +402,12 @@ def daily_saving_log(request):
     })
 
 
-def parse_mpesa_pdf(pdf_file):
+def parse_mpesa_pdf(pdf_file, password=None):
     """Parse M-Pesa PDF statement and extract transactions"""
     transactions = []
     period_start = None
     period_end = None
+    was_encrypted = False
     betting_keywords = ['bet', 'sportpesa', 'betway', 'betika', 'odds', 'gaming']
     airtime_keywords = ['airtime', 'top up', 'bundle purchase', 'customer bundle']
     fuliza_loan_keywords = ['overdraft of credit', 'over draw', 'od loan', 'fuliza loan', 'overdraft']  # Actual Fuliza credit usage
@@ -410,14 +418,47 @@ def parse_mpesa_pdf(pdf_file):
     till_keywords = ['till', 'paybill', 'merchant payment']
     
     try:
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        try:
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+        except Exception as e:
+            # PyPDF2 might throw an exception for encrypted PDFs
+            error_str = str(e).lower()
+            if 'encrypted' in error_str or 'password' in error_str:
+                if password:
+                    # Try again with password
+                    pdf_file.seek(0)
+                    try:
+                        pdf_reader = PyPDF2.PdfReader(pdf_file)
+                        if pdf_reader.is_encrypted:
+                            was_encrypted = True
+                            if not pdf_reader.decrypt(password):
+                                return {'error': 'PDF is encrypted and the provided password is incorrect.', 'encrypted': True, 'wrong_password': True}
+                    except:
+                        return {'error': 'PDF is encrypted and the provided password is incorrect.', 'encrypted': True, 'wrong_password': True}
+                else:
+                    return {'error': 'PDF is encrypted. Please provide the password.', 'encrypted': True}
+            else:
+                return {'error': f'Error reading PDF: {str(e)}'}
+        
+        if pdf_reader.is_encrypted:
+            if password:
+                try:
+                    was_encrypted = True
+                    if not pdf_reader.decrypt(password):
+                        return {'error': 'PDF is encrypted and the provided password is incorrect.', 'encrypted': True, 'wrong_password': True}
+                except Exception as e:
+                    return {'error': f'PDF is encrypted and the provided password is incorrect: {str(e)}', 'encrypted': True, 'wrong_password': True}
+            else:
+                return {'error': 'PDF is encrypted. Please provide the password.', 'encrypted': True}
+
         text = ''
         for page in pdf_reader.pages:
             text += page.extract_text()
         
         # Try to extract data from QR code first (more accurate)
         qr_data = None
-        if QR_CODE_AVAILABLE:
+        # Skip QR scanning for encrypted PDFs to avoid poppler/password issues
+        if QR_CODE_AVAILABLE and not was_encrypted:
             try:
                 # For uploaded files, we need to save temporarily or use bytes
                 # Try to get file path first
@@ -452,8 +493,7 @@ def parse_mpesa_pdf(pdf_file):
                             pass
             except Exception as e:
                 # QR code scanning failed, fall back to text parsing
-                print(f"QR code scanning failed: {e}")
-                pass
+                qr_data = None
         
         # Extract statement period from header (e.g., "10 Sep 2025 - 10 Dec 2025")
         # Look for date range patterns in the text
@@ -583,8 +623,17 @@ def parse_mpesa_pdf(pdf_file):
 
 @login_required
 def upload_statement(request):
-    """Upload and parse M-Pesa statement"""
+    """Upload and parse M-Pesa statement (supports encrypted PDFs via fetch + modal)"""
+    is_fetch = request.headers.get('X-Requested-With') == 'fetch'
     if request.method == 'POST':
+        # Check if file is present
+        if 'pdf_file' not in request.FILES:
+            if is_fetch:
+                return JsonResponse({'ok': False, 'message': 'No PDF file provided.'}, status=400)
+            messages.error(request, 'No PDF file provided.')
+            form = MpesaStatementForm()
+            return render(request, 'core/upload_statement.html', {'form': form})
+        
         form = MpesaStatementForm(request.POST, request.FILES)
         if form.is_valid():
             statement = form.save(commit=False)
@@ -592,11 +641,26 @@ def upload_statement(request):
             
             # Parse PDF
             pdf_file = request.FILES['pdf_file']
+            pdf_password = request.POST.get('pdf_password') or None
             pdf_file.seek(0)  # Reset file pointer
-            parsed = parse_mpesa_pdf(pdf_file)
+            parsed = parse_mpesa_pdf(pdf_file, password=pdf_password)
             
             if 'error' in parsed:
-                messages.error(request, f'Error parsing PDF: {parsed["error"]}')
+                error_msg = parsed['error']
+                is_encrypted = parsed.get('encrypted', False)
+                wrong_password = parsed.get('wrong_password', False)
+                
+                if is_fetch:
+                    if is_encrypted:
+                        return JsonResponse({
+                            'ok': False, 
+                            'needs_password': True, 
+                            'wrong_password': wrong_password,
+                            'message': error_msg
+                        }, status=400)
+                    return JsonResponse({'ok': False, 'message': error_msg}, status=400)
+                
+                messages.error(request, f'Error parsing PDF: {error_msg}')
                 return render(request, 'core/upload_statement.html', {'form': form})
             
             # Convert Decimal values to strings for JSON serialization
@@ -626,8 +690,24 @@ def upload_statement(request):
                 statement.period_months = delta.months + (delta.years * 12) + (1 if delta.days > 0 else 0)
             
             statement.save()
+            if is_fetch:
+                return JsonResponse({'ok': True, 'redirect': reverse('insights')})
             messages.success(request, 'M-Pesa statement uploaded and analyzed successfully!')
             return redirect('insights')
+        else:
+            if is_fetch:
+                # Return form errors for debugging
+                errors = {}
+                for field, field_errors in form.errors.items():
+                    errors[field] = list(field_errors)
+                error_message = 'Invalid form data. Please check the file and try again.'
+                if errors:
+                    error_message = f'Form validation failed: {", ".join([f"{k}: {v[0]}" for k, v in errors.items()])}'
+                return JsonResponse({
+                    'ok': False, 
+                    'message': error_message,
+                    'errors': errors
+                }, status=400)
     else:
         form = MpesaStatementForm()
     
