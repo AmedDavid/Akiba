@@ -14,11 +14,14 @@ import os
 from decimal import Decimal
 
 # Try to import QR code scanning libraries (optional)
+# Note: pyzbar requires ZBar DLLs on Windows - if not available, QR scanning will be disabled
 try:
     from pyzbar import pyzbar
     from pdf2image import convert_from_path
     QR_CODE_AVAILABLE = True
-except ImportError:
+except (ImportError, FileNotFoundError, OSError) as e:
+    # FileNotFoundError occurs on Windows when ZBar DLLs are missing
+    # OSError can also occur when DLLs can't be loaded
     QR_CODE_AVAILABLE = False
     pyzbar = None
     convert_from_path = None
@@ -476,7 +479,7 @@ def parse_mpesa_pdf(pdf_file, password=None):
                         tmp_file.write(pdf_file.read())
                         pdf_path = tmp_file.name
                 
-                if pdf_path:
+                if pdf_path and convert_from_path and pyzbar:
                     # Convert PDF to images and scan for QR codes
                     images = convert_from_path(pdf_path, first_page=1, last_page=1, dpi=200)
                     if images:
