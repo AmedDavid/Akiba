@@ -51,17 +51,32 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 5. Configure Payment Settings (Optional - for testing payments)
+### 5. Configure Environment Variables
 
-Create a `.env` file in the project root (or set environment variables):
+Create a `.env` file in the project root (copy from `.env.example` if available):
 
 ```bash
+# Django Settings
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+
+# Ngrok Configuration (for local development with ngrok)
+# Add your ngrok domain here (e.g., abc123.ngrok-free.app)
+# This will be automatically added to ALLOWED_HOSTS
+NGROK_DOMAIN=your-ngrok-domain.ngrok-free.app
+
+# Pro Plan Pricing
+# Set to 199 for production (KSh 199/month)
+# Set to 1 for testing
+PRO_MONTHLY_PRICE=199
+
 # M-Pesa Daraja API (Sandbox)
 MPESA_CONSUMER_KEY=your_consumer_key_here
 MPESA_CONSUMER_SECRET=your_consumer_secret_here
 MPESA_SHORTCODE=174379
 MPESA_PASSKEY=your_passkey_here
 MPESA_BASE_URL=https://sandbox.safaricom.co.ke
+MPESA_CALLBACK_URL=
 
 # Stripe (Test keys)
 STRIPE_SECRET_KEY=sk_test_your_key_here
@@ -69,7 +84,13 @@ STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
 ```
 
-**Note:** For development/testing, you can use sandbox/test credentials. The app will work without payment configuration, but payment features won't function.
+**Important Configuration Notes:**
+
+- **NGROK_DOMAIN**: If you're using ngrok for local development, add your ngrok domain here (e.g., `abc123.ngrok-free.app`). This will automatically be added to `ALLOWED_HOSTS`. Leave empty if not using ngrok.
+
+- **PRO_MONTHLY_PRICE**: Set the Pro plan subscription price in Kenyan Shillings. Default is `199` for production. Set to `1` for testing purposes.
+
+- **Payment Credentials**: For development/testing, you can use sandbox/test credentials. The app will work without payment configuration, but payment features won't function.
 
 ### 6. Run Development Server
 
