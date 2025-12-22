@@ -45,13 +45,27 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 4. Create Superuser
+### 4. Load Seed Data (Optional but Recommended)
+
+The project includes management commands to populate initial data:
+
+```bash
+# Create default achievements (First Steps, Goal Achiever, Week Warrior, etc.)
+python manage.py create_achievements
+
+# Create default goal templates (Emergency Fund, House Down Payment, Wedding Savings, etc.)
+python manage.py create_goal_templates
+```
+
+**Note:** These commands are idempotent - they won't create duplicates if run multiple times. They'll only create items that don't already exist.
+
+### 5. Create Superuser
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 5. Configure Environment Variables
+### 6. Configure Environment Variables
 
 Create a `.env` file in the project root (copy from `.env.example` if available):
 
@@ -113,7 +127,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
 
 - **Payment Credentials**: For development/testing, you can use sandbox/test credentials. The app will work without payment configuration, but payment features won't function.
 
-### 6. Run Development Server
+### 7. Run Development Server
 
 ```bash
 python manage.py runserver
