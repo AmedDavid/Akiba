@@ -76,7 +76,10 @@ MPESA_CONSUMER_SECRET=your_consumer_secret_here
 MPESA_SHORTCODE=174379
 MPESA_PASSKEY=your_passkey_here
 MPESA_BASE_URL=https://sandbox.safaricom.co.ke
-MPESA_CALLBACK_URL=
+# M-Pesa Callback URL (REQUIRED for sandbox - must be publicly accessible)
+# For local development with ngrok: https://your-ngrok-domain.ngrok-free.app/payments/mpesa/callback/
+# For production: https://yourdomain.com/payments/mpesa/callback/
+MPESA_CALLBACK_URL=https://your-ngrok-domain.ngrok-free.app/payments/mpesa/callback/
 
 # Stripe (Test keys)
 STRIPE_SECRET_KEY=sk_test_your_key_here
@@ -89,6 +92,19 @@ STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
 - **NGROK_DOMAIN**: If you're using ngrok for local development, add your ngrok domain here (e.g., `abc123.ngrok-free.app`). This will automatically be added to `ALLOWED_HOSTS`. Leave empty if not using ngrok.
 
 - **PRO_MONTHLY_PRICE**: Set the Pro plan subscription price in Kenyan Shillings. Default is `199` for production. Set to `1` for testing purposes.
+
+- **MPESA_CALLBACK_URL**: This is **REQUIRED** for M-Pesa sandbox testing. M-Pesa needs a publicly accessible URL to send payment callbacks to your application.
+  
+  **For Local Development:**
+  1. Start ngrok: `ngrok http 8000`
+  2. Copy your ngrok URL (e.g., `https://abc123.ngrok-free.app`)
+  3. Set `MPESA_CALLBACK_URL=https://abc123.ngrok-free.app/payments/mpesa/callback/`
+  4. Also set `NGROK_DOMAIN=abc123.ngrok-free.app` (without https://)
+  
+  **For Production:**
+  - Set `MPESA_CALLBACK_URL=https://yourdomain.com/payments/mpesa/callback/`
+  
+  **Note:** The callback endpoint is `/payments/mpesa/callback/` - this is where M-Pesa will send payment results.
 
 - **Payment Credentials**: For development/testing, you can use sandbox/test credentials. The app will work without payment configuration, but payment features won't function.
 
