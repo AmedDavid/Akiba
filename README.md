@@ -71,9 +71,12 @@ NGROK_DOMAIN=your-ngrok-domain.ngrok-free.app
 PRO_MONTHLY_PRICE=199
 
 # M-Pesa Daraja API (Sandbox)
+# Get these credentials from: https://developer.safaricom.co.ke/
 MPESA_CONSUMER_KEY=your_consumer_key_here
 MPESA_CONSUMER_SECRET=your_consumer_secret_here
 MPESA_SHORTCODE=174379
+# IMPORTANT: Get your passkey from the M-Pesa Daraja API dashboard
+# For sandbox, you can find it at: https://developer.safaricom.co.ke/apis/m-pesa-stk-push
 MPESA_PASSKEY=your_passkey_here
 MPESA_BASE_URL=https://sandbox.safaricom.co.ke
 # M-Pesa Callback URL (REQUIRED for sandbox - must be publicly accessible)
@@ -89,7 +92,9 @@ STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
 
 **Important Configuration Notes:**
 
-- **NGROK_DOMAIN**: If you're using ngrok for local development, add your ngrok domain here (e.g., `abc123.ngrok-free.app`). This will automatically be added to `ALLOWED_HOSTS`. Leave empty if not using ngrok.
+- **NGROK_DOMAIN**: If you're using ngrok for local development, add your ngrok domain here (e.g., `abc123.ngrok-free.app`). **Do NOT include `https://`** - just the domain name. This will automatically be added to `ALLOWED_HOSTS`. 
+  
+  **Important:** Make sure ngrok is forwarding to the correct port. If Django is running on port 8000, start ngrok with: `ngrok http 8000` (not port 80).
 
 - **PRO_MONTHLY_PRICE**: Set the Pro plan subscription price in Kenyan Shillings. Default is `199` for production. Set to `1` for testing purposes.
 

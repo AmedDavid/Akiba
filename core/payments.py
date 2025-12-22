@@ -39,6 +39,12 @@ def get_mpesa_access_token():
         print("M-Pesa error: Consumer key or secret not configured. Please set MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET in .env file")
         return None
     
+    # Check if passkey is set
+    if MPESA_PASSKEY == 'your_passkey_here' or not MPESA_PASSKEY:
+        print("M-Pesa error: Passkey not configured. Please set MPESA_PASSKEY in .env file")
+        print("You can get your passkey from: https://developer.safaricom.co.ke/apis/m-pesa-stk-push")
+        return None
+    
     # Encode consumer key and secret
     credentials = f"{MPESA_CONSUMER_KEY}:{MPESA_CONSUMER_SECRET}"
     encoded_credentials = base64.b64encode(credentials.encode()).decode()
@@ -81,6 +87,10 @@ def initiate_mpesa_stk_push(phone_number, amount, account_reference, callback_ur
     access_token = get_mpesa_access_token()
     if not access_token:
         return False, {'error': 'Failed to get access token'}
+    
+    # Validate passkey before proceeding
+    if MPESA_PASSKEY == 'your_passkey_here' or not MPESA_PASSKEY:
+        return False, {'error': 'M-Pesa passkey not configured. Please set MPESA_PASSKEY in .env file. Get it from https://developer.safaricom.co.ke/apis/m-pesa-stk-push'}
     
     url = f"{MPESA_BASE_URL}/mpesa/stkpush/v1/processrequest"
     

@@ -34,6 +34,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '1470c6463679.ngrok-free.app']
 # Add ngrok domain dynamically if set in environment
 ngrok_domain = os.environ.get('NGROK_DOMAIN', None)
 if ngrok_domain:
+    # Remove https:// or http:// if present, and remove trailing slash
+    ngrok_domain = ngrok_domain.replace('https://', '').replace('http://', '').rstrip('/')
     ALLOWED_HOSTS.append(ngrok_domain)
 
 
