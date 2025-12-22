@@ -38,17 +38,6 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**Note for Windows users:** The `pyzbar` package (used for QR code scanning in M-Pesa statements) requires the ZBar library DLLs. If you encounter a `FileNotFoundError: Could not find module 'libiconv.dll'` error:
-
-1. Download ZBar for Windows from: https://github.com/mchehab/zbar/releases
-2. Extract the DLLs (`libiconv.dll`, `libzbar-64.dll`) and either:
-   - Add them to your system PATH, or
-   - Place them in the same directory as your Python executable
-
-Alternatively, the application will work without ZBar - QR code scanning will be automatically disabled, and the app will fall back to text-based PDF parsing.
-
-**Note:** The application gracefully handles missing ZBar dependencies and will continue to function normally without QR code scanning capabilities.
-
 ### 3. Run Migrations
 
 ```bash

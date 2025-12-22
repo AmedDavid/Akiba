@@ -13,19 +13,6 @@ import re
 import os
 from decimal import Decimal
 
-# Try to import QR code scanning libraries (optional)
-# Note: pyzbar requires ZBar DLLs on Windows - if not available, QR scanning will be disabled
-try:
-    from pyzbar import pyzbar
-    from pdf2image import convert_from_path
-    QR_CODE_AVAILABLE = True
-except (ImportError, FileNotFoundError, OSError) as e:
-    # FileNotFoundError occurs on Windows when ZBar DLLs are missing
-    # OSError can also occur when DLLs can't be loaded
-    QR_CODE_AVAILABLE = False
-    pyzbar = None
-    convert_from_path = None
-
 def convert_decimals_to_strings(obj):
     """Recursively convert Decimal and date values to strings for JSON serialization"""
     if isinstance(obj, Decimal):
@@ -457,46 +444,6 @@ def parse_mpesa_pdf(pdf_file, password=None):
         text = ''
         for page in pdf_reader.pages:
             text += page.extract_text()
-        
-        # Try to extract data from QR code first (more accurate)
-        qr_data = None
-        # Skip QR scanning for encrypted PDFs to avoid poppler/password issues
-        if QR_CODE_AVAILABLE and not was_encrypted:
-            try:
-                # For uploaded files, we need to save temporarily or use bytes
-                # Try to get file path first
-                pdf_path = None
-                if hasattr(pdf_file, 'temporary_file_path'):
-                    # File is already on disk
-                    pdf_path = pdf_file.temporary_file_path()
-                elif hasattr(pdf_file, 'name') and os.path.exists(pdf_file.name):
-                    pdf_path = pdf_file.name
-                else:
-                    # Save to temporary file
-                    import tempfile
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-                        pdf_file.seek(0)
-                        tmp_file.write(pdf_file.read())
-                        pdf_path = tmp_file.name
-                
-                if pdf_path and convert_from_path and pyzbar:
-                    # Convert PDF to images and scan for QR codes
-                    images = convert_from_path(pdf_path, first_page=1, last_page=1, dpi=200)
-                    if images:
-                        qr_results = pyzbar.decode(images[0])
-                        if qr_results:
-                            qr_data = qr_results[0].data.decode('utf-8')
-                            # QR code data can contain transaction info - parse if needed
-                    
-                    # Clean up temporary file if we created it
-                    if not (hasattr(pdf_file, 'temporary_file_path') or (hasattr(pdf_file, 'name') and os.path.exists(pdf_file.name))):
-                        try:
-                            os.unlink(pdf_path)
-                        except:
-                            pass
-            except Exception as e:
-                # QR code scanning failed, fall back to text parsing
-                qr_data = None
         
         # Extract statement period from header (e.g., "10 Sep 2025 - 10 Dec 2025")
         # Look for date range patterns in the text
